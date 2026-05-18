@@ -246,7 +246,7 @@ const auto CANNON_BALL_SPARK_ANIMATION_FACTORY = [] {
 
 #pragma endregion particles_settings
 
-Application::Application() : should_close_(false), free_view_override_(false)
+Application::Application() : should_close_(false), free_view_override_(false), render_albedo_textures_(true)
 {
     ProfileScope;
 
@@ -281,6 +281,7 @@ Application::Application() : should_close_(false), free_view_override_(false)
     Input::bindKey(Input::Action::PauseTime,            GLFW_KEY_P         );
     Input::bindKey(Input::Action::RestartGame,          GLFW_KEY_G         );
     Input::bindKey(Input::Action::QuitGame,             GLFW_KEY_ESCAPE    );
+    Input::bindKey(Input::Action::ToggleAlbedoTextures, GLFW_KEY_T         );
 
     /******************************************************************************/
     /*                                   Shaders                                  */
@@ -307,8 +308,8 @@ Application::Application() : should_close_(false), free_view_override_(false)
     ResourceLoader::load<resource::Shader>("WorldTexture", "WorldTexture.vert", "WorldTexture.frag");
     ResourceLoader::load<resource::Shader>("Water",        "Water.vert",        "Water.frag", resource::Shader::Defines{
         {std::string_view("MAX_DIRECTIONAL_LIGHTS"), std::optional(std::to_string(component::DirectionalLight::MAX_DIRECTIONAL_LIGHTS))}
-    }, shared_shader_code
-        ,
+        },
+        shared_shader_code,
         std::optional(std::filesystem::path("WaterTCS.glsl")),
         std::optional(std::filesystem::path("WaterTES.glsl"))
     );
@@ -862,6 +863,8 @@ Application::Application() : should_close_(false), free_view_override_(false)
         }
     }();
 
+    updateShaderSettings();
+
     main_view_ = View::Top;
     if constexpr (DEBUG_SCENE)
     {
@@ -1206,6 +1209,25 @@ void Application::initializeOpenGL()
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
+void Application::updateShaderSettings()
+{
+    static std::vector<std::weak_ptr<resource::Shader>> shaders = {
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("Sky")),
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR")),
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR#FLAP")),
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("WorldTexture")),
+    };
+
+    for (auto weak_shader : shaders)
+    {
+        auto shader = weak_shader.lock();
+
+        shader->bind();
+        shader->setUniform("u_UseAlbedoTextures", render_albedo_textures_);
+        // shader->setUniform("u_UseNormalMaps", render_normal_maps_);
+    }
+}
+
 void Application::run()
 {
     while (!(window_->shouldClose() || should_close_))
@@ -1347,6 +1369,16 @@ void Application::update(float delta_time)
     if (Input::getState(Input::Action::QuitGame) == Input::State::JustReleased)
     {
         should_close_ = true;
+    }
+    if (Input::getState(Input::Action::ToggleAlbedoTextures) == Input::State::JustReleased)
+    {
+        render_albedo_textures_ = !render_albedo_textures_;
+        updateShaderSettings();
+
+        if (render_albedo_textures_)
+            LOG_INFO("Albedo textures enabled");
+        else
+            LOG_INFO("Albedo textures disabled");
     }
 
     updateActiveView();

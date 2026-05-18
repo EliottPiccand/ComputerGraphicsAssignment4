@@ -38,6 +38,7 @@ class Input
         PauseTime,
         RestartGame,
         QuitGame,
+        ToggleAlbedoTextures,
     };
 
     enum class State

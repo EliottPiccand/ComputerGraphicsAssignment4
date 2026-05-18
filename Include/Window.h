@@ -1,13 +1,14 @@
 #pragma once
 
-#include "Resources/Shader.h"
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <Lib/glfw.h>
-#include <vector>
+
+#include "Resources/Shader.h"
 
 class Input;
 
@@ -23,11 +24,11 @@ class Window
 
     [[nodiscard]] bool shouldClose() const;
     void startRendering() const;
-    
+
     void bindFrameBuffer() const;
     void unbindFrameBuffer() const;
     void mapFrameBuffer(const std::vector<std::weak_ptr<resource::Shader>> &shaders) const;
-    
+
     void endFrame() const;
 
     void setTitle(std::string title) const;

@@ -4,6 +4,8 @@ layout(location = 0) in vec3 in_Pos;
 layout(location = 1) in vec3 in_Normal;
 layout(location = 2) in vec2 in_UV;
 
+uniform bool u_UseAlbedoTextures;
+
 uniform vec3 u_CameraPosition;
 
 struct DirectionalLight
@@ -71,7 +73,7 @@ vec3 computeNormal()
 void main()
 {
     // Albedo
-    vec4 albedoWithAlpha = texture(u_AlbedoTexture, in_UV) * u_AlbedoColor;
+    vec4 albedoWithAlpha = (u_UseAlbedoTextures ? texture(u_AlbedoTexture, in_UV) : vec4(1.0)) * u_AlbedoColor;
     vec3 albedo = albedoWithAlpha.rgb;
 
     // Metallic / Roughness

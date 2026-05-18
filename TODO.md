@@ -21,13 +21,13 @@
 - ~~fix non textured model rendering~~
 - ~~fix explosion particles~~
 - ~~fix message transparency~~
+- ~~toggle albedo textures with 't'~~
 - Gouraud shading mode (cycle with 'g')
 - Phong shading mode
 - light points:
     - island firecamp/lantern
     - cannonballs
 - moving sunlight
-- toggle textures with 't'
 - toggle normal maps with 'n'
 - water texture mapping
 - update Report
@@ -70,3 +70,4 @@
 - fix copy_asset.py when ???
 - readd debug view
 - debug GameObject names
+- move tone mapping in its own render pass

@@ -41,7 +41,10 @@ class Application
 
     GameObjectId player_id_;
 
+    bool render_albedo_textures_;
+
     void initializeOpenGL();
+    void updateShaderSettings();
 
     void update(float delta_time);
     void render() const;
