@@ -413,7 +413,8 @@ To help with debugging, a few debug options are available :
 - clicking `P` pauses/resume the time flow of the game. This allow to pauses everything, except the free view camera (to be able to navigate the scene and inspect it);
 - clicking `F` when in another view than Top View fire a cannon ball from the player ship;
 - the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East;
-- clicking `T` toggle on/off the rendering of Albedo textures.
+- clicking `T` toggle on/off the rendering of Albedo textures;
+- clicking `N` toggle on/off the use of normal maps.
 
 == Game Screenshots
 

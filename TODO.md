@@ -22,13 +22,13 @@
 - ~~fix explosion particles~~
 - ~~fix message transparency~~
 - ~~toggle albedo textures with 't'~~
+- ~~toggle normal maps with 'n'~~
 - Gouraud shading mode (cycle with 'g')
 - Phong shading mode
 - light points:
     - island firecamp/lantern
     - cannonballs
 - moving sunlight
-- toggle normal maps with 'n'
 - water texture mapping
 - update Report
     - content

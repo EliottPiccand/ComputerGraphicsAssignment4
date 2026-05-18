@@ -42,6 +42,7 @@ class Application
     GameObjectId player_id_;
 
     bool render_albedo_textures_;
+    bool render_normal_maps_;
 
     void initializeOpenGL();
     void updateShaderSettings();

@@ -5,6 +5,7 @@ layout(location = 1) in vec3 in_Normal;
 layout(location = 2) in vec2 in_UV;
 
 uniform bool u_UseAlbedoTextures;
+uniform bool u_UseNormalMaps;
 
 uniform vec3 u_CameraPosition;
 
@@ -64,7 +65,7 @@ vec3 computeNormal()
 
     mat3 TBN = mat3(T, B, N);
 
-    vec3 normalMap = texture(u_NormalMap, in_UV).rgb;
+    vec3 normalMap = u_UseNormalMaps ? texture(u_NormalMap, in_UV).rgb : vec3(0.0, 0.0, 1.0);
     normalMap = normalize(normalMap * 2.0 - 1.0);
 
     return normalize(TBN * normalMap);

@@ -217,7 +217,8 @@ constexpr const size_t PLOOF_PARTICLE_COUNT = 500;
 constexpr const Duration PLOOF_PARTICLE_MAX_LIFETIME = Duration::seconds(3.0f);
 
 constexpr const size_t EXPLOSION_PARTICLE_COUNT = 2500;
-constexpr const Duration EXPLOSION_PARTICLE_MAX_LIFETIME = Duration::seconds(MAX_EXPLOSION_RAIDUS / EXPLOSION_RADIUS_EXPANTION_RATE);
+constexpr const Duration EXPLOSION_PARTICLE_MAX_LIFETIME =
+    Duration::seconds(MAX_EXPLOSION_RAIDUS / EXPLOSION_RADIUS_EXPANTION_RATE);
 
 constexpr const Duration SMOKE_PARTICLE_MAX_LIFETIME = Duration::milliseconds(1500.0f);
 
@@ -246,7 +247,8 @@ const auto CANNON_BALL_SPARK_ANIMATION_FACTORY = [] {
 
 #pragma endregion particles_settings
 
-Application::Application() : should_close_(false), free_view_override_(false), render_albedo_textures_(true)
+Application::Application()
+    : should_close_(false), free_view_override_(false), render_albedo_textures_(true), render_normal_maps_(true)
 {
     ProfileScope;
 
@@ -282,6 +284,7 @@ Application::Application() : should_close_(false), free_view_override_(false), r
     Input::bindKey(Input::Action::RestartGame,          GLFW_KEY_G         );
     Input::bindKey(Input::Action::QuitGame,             GLFW_KEY_ESCAPE    );
     Input::bindKey(Input::Action::ToggleAlbedoTextures, GLFW_KEY_T         );
+    Input::bindKey(Input::Action::ToggleNormalMaps,     GLFW_KEY_N         );
 
     /******************************************************************************/
     /*                                   Shaders                                  */
@@ -1224,7 +1227,7 @@ void Application::updateShaderSettings()
 
         shader->bind();
         shader->setUniform("u_UseAlbedoTextures", render_albedo_textures_);
-        // shader->setUniform("u_UseNormalMaps", render_normal_maps_);
+        shader->setUniform("u_UseNormalMaps", render_normal_maps_);
     }
 }
 
@@ -1376,9 +1379,19 @@ void Application::update(float delta_time)
         updateShaderSettings();
 
         if (render_albedo_textures_)
-            LOG_INFO("Albedo textures enabled");
+            LOG_INFO("albedo textures enabled");
         else
-            LOG_INFO("Albedo textures disabled");
+            LOG_INFO("albedo textures disabled");
+    }
+    if (Input::getState(Input::Action::ToggleNormalMaps) == Input::State::JustReleased)
+    {
+        render_normal_maps_ = !render_normal_maps_;
+        updateShaderSettings();
+
+        if (render_normal_maps_)
+            LOG_INFO("normal maps enabled");
+        else
+            LOG_INFO("normal maps disabled");
     }
 
     updateActiveView();

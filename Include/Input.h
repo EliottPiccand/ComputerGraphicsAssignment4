@@ -39,6 +39,7 @@ class Input
         RestartGame,
         QuitGame,
         ToggleAlbedoTextures,
+        ToggleNormalMaps,
     };
 
     enum class State
