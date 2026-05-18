@@ -1,0 +1,150 @@
+#include "GameObject.h"
+
+#include <cassert>
+
+#include <Lib/OpenGL.h>
+
+GameObject::GameObject() : id_(next_id_)
+{
+    next_id_ += 1;
+}
+
+GameObjectId GameObject::getId() const
+{
+    return id_;
+}
+
+std::shared_ptr<GameObject> GameObject::addChild()
+{
+    auto child = std::make_shared<GameObject>();
+    child->parent_ = std::optional(shared_from_this());
+    children_.push_back(child);
+    return child;
+}
+
+std::optional<std::shared_ptr<GameObject>> GameObject::getParent() const
+{
+    return parent_.has_value() ? std::optional(parent_->lock()) : std::nullopt;
+}
+
+std::optional<std::shared_ptr<GameObject>> GameObject::getGameObject(GameObjectId id)
+{
+    if (id == id_)
+    {
+        return std::optional(shared_from_this());
+    }
+
+    for (auto &child : children_)
+    {
+        auto obj = child->getGameObject(id);
+        if (obj.has_value())
+        {
+            return obj;
+        }
+    }
+
+    return std::nullopt;
+}
+
+void GameObject::detach()
+{
+    std::vector<std::shared_ptr<GameObject>> local_children;
+    local_children.swap(children_);
+
+    for (auto &child : local_children)
+    {
+        child->detach();
+    }
+
+    if (parent_.has_value())
+    {
+        auto &siblings = parent_->lock()->children_;
+        std::erase_if(siblings, [&](auto s) { return s->id_ == id_; });
+
+        parent_ = std::nullopt;
+    }
+}
+
+void GameObject::initialize()
+{
+    if (initialized_)
+    {
+        return;
+    }
+
+    for (auto &component : components_)
+    {
+        component->initialize();
+    }
+
+    for (auto &child : children_)
+    {
+        child->initialize();
+    }
+
+    initialized_ = true;
+}
+
+void GameObject::update()
+{
+    if (!active)
+    {
+        return;
+    }
+
+    assert(initialized_ && "GameObject::update called while uninitialized");
+
+    for (auto &child : children_)
+    {
+        child->update();
+    }
+
+    for (auto &component : components_)
+    {
+        component->update();
+    }
+}
+
+void GameObject::render(const glm::mat4 &parent_transform) const
+{
+    if (!visible)
+    {
+        return;
+    }
+
+    assert(initialized_ && "GameObject::render called while uninitialized");
+
+    glm::mat4 transform = parent_transform;
+
+    for (const auto &component : components_)
+    {
+        component->render(transform);
+    }
+
+    for (const auto &child : children_)
+    {
+        child->render(transform);
+    }
+}
+
+void GameObject::renderDefered(const glm::mat4 &parent_transform) const
+{
+    if (!visible)
+    {
+        return;
+    }
+
+    assert(initialized_ && "GameObject::renderDefered called while uninitialized");
+
+    glm::mat4 transform = parent_transform;
+
+    for (const auto &component : components_)
+    {
+        component->renderDefered(transform);
+    }
+
+    for (const auto &child : children_)
+    {
+        child->renderDefered(transform);
+    }
+}
