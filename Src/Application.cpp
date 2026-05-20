@@ -3,6 +3,7 @@
 #include <array>
 #include <numbers>
 #include <string_view>
+#include <tuple>
 
 #include <Lib/OpenGL.h>
 #include <Lib/glm.h>
@@ -16,6 +17,7 @@
 #include "Components/Flag.h"
 #include "Components/HealthBar.h"
 #include "Components/ModelInstance.h"
+#include "Components/PointLight.h"
 #include "Components/RigidBody.h"
 #include "Components/ShipAIController.h"
 #include "Components/ShipPlayerController.h"
@@ -32,6 +34,7 @@
 #include "Events/SpawnParticles.h"
 #include "Events/WindowResized.h"
 #include "Input.h"
+#include "Mesh/Mesh.h"
 #include "Mesh/Vertex/VertexParticle.h"
 #include "ParticleSystem.h"
 #include "Physics.h"
@@ -168,7 +171,7 @@ static_assert(PERSPECTIVE_FAR > static_cast<double>(WORLD_WIDTH) * std::numbers:
 
 #pragma region game_contants
 
-constexpr const float SUN_INTENSITY = 3.0f;
+constexpr const float SUN_INTENSITY = 10.0f;
 
 constexpr const size_t ROCKS_PER_WORLD_SIDE = 24;
 constexpr const float WALL_HEIGHT = 4.5f;
@@ -285,6 +288,7 @@ Application::Application()
     Input::bindKey(Input::Action::QuitGame,             GLFW_KEY_ESCAPE    );
     Input::bindKey(Input::Action::ToggleAlbedoTextures, GLFW_KEY_T         );
     Input::bindKey(Input::Action::ToggleNormalMaps,     GLFW_KEY_N         );
+    Input::bindKey(Input::Action::SetSunRise,           GLFW_KEY_L         );
 
     /******************************************************************************/
     /*                                   Shaders                                  */
@@ -294,23 +298,26 @@ Application::Application()
     
     const std::vector<std::filesystem::path> shared_shader_code = {
         "Maths.frag",
-        "SampleEquirect.frag",
+        "Sky.frag",
         "PBRHelpers.frag",
         "ToneMapping.frag",
+        "Lights.frag",
     };
 
-    ResourceLoader::load<resource::Shader>("Sky",          "Sky.vert",          "Sky.frag",          resource::Shader::Defines{}, shared_shader_code);
+    ResourceLoader::load<resource::Shader>("Sky",          "SkyBox.vert",       "SkyBox.frag",          resource::Shader::Defines{
+        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))},
+    }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("PBR",          "PBR.vert",          "PBR.frag",          resource::Shader::Defines{
-        {std::string_view("MAX_DIRECTIONAL_LIGHTS"), std::optional(std::to_string(component::DirectionalLight::MAX_DIRECTIONAL_LIGHTS))},
+        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))},
     }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("PBR#FLAP",     "PBR.vert",          "PBR.frag",          resource::Shader::Defines{
-        {std::string_view("MAX_DIRECTIONAL_LIGHTS"), std::optional(std::to_string(component::DirectionalLight::MAX_DIRECTIONAL_LIGHTS))},
+        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))},
         {std::string_view("FLAP"), std::nullopt},
     }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("WorldColor",   "WorldColor.vert",   "WorldColor.frag"  );
     ResourceLoader::load<resource::Shader>("WorldTexture", "WorldTexture.vert", "WorldTexture.frag");
     ResourceLoader::load<resource::Shader>("Water",        "Water.vert",        "Water.frag", resource::Shader::Defines{
-        {std::string_view("MAX_DIRECTIONAL_LIGHTS"), std::optional(std::to_string(component::DirectionalLight::MAX_DIRECTIONAL_LIGHTS))}
+        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))}
         },
         shared_shader_code,
         std::optional(std::filesystem::path("WaterTCS.glsl")),
@@ -330,7 +337,11 @@ Application::Application()
     ResourceLoader::load<resource::Texture>("MissingAlbedo",              "MissingAlbedo.png",              resource::Texture::Type::Albedo                 );
     ResourceLoader::load<resource::Texture>("MissingMetallicRoughness",   "MissingMetallicRoughness.png",   resource::Texture::Type::MetallicRoughness      );
     ResourceLoader::load<resource::Texture>("MissingNormalMap",           "MissingNormalMap.png",           resource::Texture::Type::NormalMap              );
-    ResourceLoader::load<resource::Texture>("Sky/SkyBox",                 "Sky/SkyBox.hdr",                 resource::Texture::Type::Albedo,            true);
+    ResourceLoader::load<resource::Texture>("Sky/Noon",                   "Sky/Noon.hdr",                   resource::Texture::Type::Albedo,            true);
+    ResourceLoader::load<resource::Texture>("Sky/Dusk",                   "Sky/Dusk.hdr",                   resource::Texture::Type::Albedo,            true);
+    ResourceLoader::load<resource::Texture>("Sky/Night",                  "Sky/Night.hdr",                  resource::Texture::Type::Albedo,            true);
+    ResourceLoader::load<resource::Texture>("Sky/Sunrise",                "Sky/Sunrise.hdr",                resource::Texture::Type::Albedo,            true);
+    ResourceLoader::load<resource::Texture>("Sky/Sunset",                 "Sky/Sunset.hdr",                 resource::Texture::Type::Albedo,            true);
     ResourceLoader::load<resource::Texture>("Ship/PlayerVariant",         "Ship/SailsRopePlayerAlbedo.png", resource::Texture::Type::Albedo                 );
     ResourceLoader::load<resource::Texture>("Effect/HitVignette",         "Effects/HitVignette.png",        resource::Texture::Type::Albedo                 );
     ResourceLoader::load<resource::Texture>("Message/Victory",            "Messages/Victory.png",           resource::Texture::Type::Albedo                 );
@@ -445,6 +456,10 @@ Application::Application()
         ResourceLoader::get<resource::Shader>("PBR#FLAP"),
         ResourceLoader::get<resource::Shader>("Water"),
     });
+    component::PointLight::initialize({
+        ResourceLoader::get<resource::Shader>("PBR"),
+        ResourceLoader::get<resource::Shader>("PBR#FLAP"),
+    });
     ParticleSystem::initialize();
 
     const resource::Model::MaterialsOverride PLAYER_SHIP_MATERIALS_OVERRIDE = {
@@ -466,15 +481,53 @@ Application::Application()
     [&] {
         scene_root_ = std::make_shared<GameObject>();
         scene_root_->addComponent<component::Transform>();
-        scene_root_->addComponent<component::Sky>(ResourceLoader::get<resource::Texture>("Sky/SkyBox"), std::vector{
+        scene_root_->addComponent<component::Sky>(
+            std::vector<component::Sky::SkyboxEntry>{
+                {std::weak_ptr(ResourceLoader::get<resource::Texture>("Sky/Sunrise")), 0.10f, 0.25f},
+                {std::weak_ptr(ResourceLoader::get<resource::Texture>("Sky/Noon")), 0.25f, 0.75f},
+                {std::weak_ptr(ResourceLoader::get<resource::Texture>("Sky/Sunset")), 0.75f, 0.85f},
+                {std::weak_ptr(ResourceLoader::get<resource::Texture>("Sky/Dusk")), 0.85f, 0.90f},
+                {std::weak_ptr(ResourceLoader::get<resource::Texture>("Sky/Night")), 0.90f, 0.10f},
+            },
+            std::vector{
             std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR")),
             std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR#FLAP")),
             std::weak_ptr(ResourceLoader::get<resource::Shader>("Water")),
         });
-        scene_root_->addComponent<component::DirectionalLight>(
+        std::weak_ptr sun_weak = scene_root_->addComponent<component::DirectionalLight>(
             glm::normalize(2.0f * DOWN + WEST + SOUTH),
             color::SUN,
             SUN_INTENSITY);
+        scene_root_->addComponent<component::Animation>([sun_weak](std::shared_ptr<component::Transform> transform,
+                                                          std::shared_ptr<GameObject> game_object){
+            // Peak sun elevation above the horizon (radians)
+            static constexpr float MAX_ELEVATION = glm::radians(70.0f);
+            static constexpr float SUNRISE_START = 0.10f;
+            static constexpr float SUNSET_END = 0.90f;
+            static constexpr float MIN_DAY_INTENSITY_FACTOR = 0.12f;
+            
+            (void)transform;
+            (void)game_object;
+
+            auto sun = sun_weak.lock();
+            
+            const float time_of_day = Time::getTimeOfDay();
+            float day_progress = 0.0f;
+
+            if (time_of_day >= SUNRISE_START && time_of_day <= SUNSET_END)
+            {
+                day_progress = (time_of_day - SUNRISE_START) / (SUNSET_END - SUNRISE_START);
+            }
+
+            const float sun_curve = std::sin(glm::pi<float>() * day_progress);
+            const float azimuth = glm::mix(-glm::half_pi<float>(), glm::half_pi<float>(), day_progress);
+            const float elevation = sun_curve * MAX_ELEVATION;
+
+            const glm::vec3 horizontal = std::cos(azimuth) * EAST + std::sin(azimuth) * NORTH;
+            sun->direction = std::cos(elevation) * horizontal + std::sin(elevation) * UP;
+            const float day_intensity = glm::mix(MIN_DAY_INTENSITY_FACTOR, 1.0f, sun_curve * sun_curve);
+            sun->intensity = day_intensity * SUN_INTENSITY;
+        });
         Singleton::scene_root = scene_root_;
 
         // - Free View Camera
@@ -577,6 +630,42 @@ Application::Application()
             rock_3_model->addComponent<component::Transform>(ROCK_MODEL_TRANSLATION, ROCK_MODEL_ROTATION, ROCK_MODEL_SCALE);
             rock_3_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Rocks/3"));
         
+            /**************/
+            /*   Lights   */
+            /**************/
+
+            ResourceLoader::load<resource::Model>("ColorTestQuad",
+                generateWorldQuad(),
+                color::WHITE
+            );
+
+            const glm::vec3 test_quad_rgb_position = EAST * 10.0f + UP * 2.0f + SOUTH * 10.0f;
+            const glm::vec3 test_quad_scale = glm::vec3(8.0f, 8.0f, 8.0f);
+
+            auto test_quad_rgb = scene_root_->addChild();
+            test_quad_rgb->addComponent<component::Transform>(test_quad_rgb_position, glm::vec3(0.0f), test_quad_scale);
+            test_quad_rgb->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("ColorTestQuad"));
+
+            const glm::vec3 test_quad_rgb_center = test_quad_rgb_position;
+            const glm::vec3 point_light_offset_height = UP * 4.0f;
+
+            const float light_intensity = 10.0f;
+
+            // Point Light Red
+            auto point_light_r = scene_root_->addChild();
+            point_light_r->addComponent<component::Transform>(test_quad_rgb_center + WEST * 3.5f + NORTH * 1.5f + point_light_offset_height);
+            point_light_r->addComponent<component::PointLight>(rgba(255, 0, 0, 1), light_intensity);
+
+            // Point Light Green
+            auto point_light_g = scene_root_->addChild();
+            point_light_g->addComponent<component::Transform>(test_quad_rgb_center + EAST * 3.5f + NORTH * 1.5f + point_light_offset_height);
+            point_light_g->addComponent<component::PointLight>(rgba(0, 255, 0, 1), light_intensity);
+
+            // Point Light Blue
+            auto point_light_b = scene_root_->addChild();
+            point_light_b->addComponent<component::Transform>(test_quad_rgb_center + SOUTH * 3.5f + point_light_offset_height);
+            point_light_b->addComponent<component::PointLight>(rgba(0, 0, 255, 1), light_intensity);
+
             /**************/
             /*  Particles */
             /**************/
@@ -1393,6 +1482,11 @@ void Application::update(float delta_time)
         else
             LOG_INFO("normal maps disabled");
     }
+    if (Input::getState(Input::Action::SetSunRise) == Input::State::JustReleased)
+    {
+        Time::setTimeOfDay(0.0f);
+        LOG_INFO("time set to sunrise");
+    }
 
     updateActiveView();
 
@@ -1413,15 +1507,12 @@ void Application::render() const
 
     auto camera = Singleton::active_camera.lock();
     camera->bind();
-    component::DirectionalLight::beginRender();
 
     if (Singleton::rendering_style == RenderingStyle::WireframeWithHiddenLinesRemoval)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         renderPass(camera);
-
-        component::DirectionalLight::endRender();
 
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1430,7 +1521,6 @@ void Application::render() const
     else
     {
         renderPass(camera);
-        component::DirectionalLight::endRender();
     }
 }
 
@@ -1444,6 +1534,12 @@ void Application::renderPass(std::shared_ptr<component::Camera3D> camera) const
     };
 
     window_->bindFrameBuffer();
+
+    component::DirectionalLight::beginPreRender();
+    component::PointLight::beginPreRender();
+    scene_root_->preRender();
+    component::PointLight::endPreRender();
+
     scene_root_->render();
 
     window_->mapFrameBuffer(shaders_for_frame_buffer_mapping);

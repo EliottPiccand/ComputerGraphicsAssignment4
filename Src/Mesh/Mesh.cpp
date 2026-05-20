@@ -314,6 +314,37 @@ Mesh<VertexUI> generateQuad()
     return std::make_tuple(vertices, indices);
 }
 
+Mesh<VertexPBR> generateWorldQuad()
+{
+    ProfileScope;
+
+    const std::vector<VertexPBR> vertices = {
+        {
+            .position = -0.5f * EAST + 0.5f * NORTH,
+            .normal = UP,
+            .uv = {0.0f, 0.0f},
+        },
+        {
+            .position = -0.5f * EAST - 0.5f * NORTH,
+            .normal = UP,
+            .uv = {0.0f, 1.0f},
+        },
+        {
+            .position = 0.5f * EAST + 0.5f * NORTH,
+            .normal = UP,
+            .uv = {1.0f, 0.0f},
+        },
+        {
+            .position = 0.5f * EAST - 0.5f * NORTH,
+            .normal = UP,
+            .uv = {1.0f, 1.0f},
+        },
+    };
+
+    const std::vector<IndexType> indices = {0, 1, 2, 2, 1, 3};
+    return std::make_tuple(vertices, indices);
+}
+
 Mesh<VertexPBR> generateFlag(size_t strip_count, float width, float height, float uv_top, float uv_left,
                              float uv_bottom, float uv_right)
 {

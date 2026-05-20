@@ -147,7 +147,7 @@ Window::Window() : is_full_screen_(false), width_(DEFAULT_WIDTH), height_(DEFAUL
                           glDebugSeverityName(severity), id, text);
 
 #if defined(__GNUC__) || defined(__clang__)
-                __builtin_trap();
+                // __builtin_trap();
 #endif
             }
             else

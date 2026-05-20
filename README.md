@@ -22,7 +22,10 @@ To help with debugging, a few debug options are available :
 - releasing `Enter` toggle a free view camera that can be moved with `W` `A` `S` `D` `Space` and `Left Shift`. (note that here, `W` `A` `S` `D` no longer move the ship).
 - releasing `P` toggle on/off the physics engine
 - releasing `F` when in another view than Top View fire a cannon ball from the player ship
-- the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East.
+- the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East;
+- releasing `T` toggle on/off the rendering of Albedo textures;
+- releasing `N` toggle on/off the use of normal maps;
+- releasing `L` restart the day from the sunrise.
 
 ## Building the game
 This project use CMake for compiling, and Python for moving assets.
@@ -91,4 +94,4 @@ git checkout v0.13.1
 - Cannon ball model : [Ball Pack by _YounGen Tech_](https://assetstore.unity.com/packages/3d/props/ball-pack-446)
 - Rocks : [Fantasy landscape by 
 _Pxltiger_](https://assetstore.unity.com/packages/3d/environments/fantasy-landscape-103573)
-- SkyBox : [Free HDR Sky by _ProAssets_](https://assetstore.unity.com/packages/2d/textures-materials/sky/free-hdr-sky-61217)
+- SkyBox : [Stylized Skyboxes | FREE by _Staggart Creations_](https://assetstore.unity.com/packages/2d/textures-materials/sky/stylized-skyboxes-free-302248)

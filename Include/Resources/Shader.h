@@ -48,6 +48,7 @@ class Shader
     GLint getUniformLocation(const char *name) const;
 
     void setUniformArrayElement(std::string_view name, size_t index, const glm::vec3 &value) const;
+    void setUniformArrayElement(std::string_view name, size_t index, float value) const;
 
     bool bindTexture(const char *name, GLint texture_unit) const;
 

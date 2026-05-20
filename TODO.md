@@ -23,12 +23,13 @@
 - ~~fix message transparency~~
 - ~~toggle albedo textures with 't'~~
 - ~~toggle normal maps with 'n'~~
-- Gouraud shading mode (cycle with 'g')
-- Phong shading mode
-- light points:
+- ~~moving sunlight~~
+- ~~light points:~~
     - island firecamp/lantern
     - cannonballs
-- moving sunlight
+- particle lighting
+- Gouraud shading mode (cycle with 'g')
+- Phong shading mode (cycle with 'g')
 - water texture mapping
 - update Report
     - content
@@ -55,11 +56,14 @@
 - ~~smoke when cannon fire~~
 - ~~pbr~~
 - ~~waves (https://alextardif.com/Water.html)~~
+- ~~night skybox blending~~
+- moonlight
+- moon
+- sun
 - fireworks on win
 - sink animation
 - rotating ship wheel
 - moving rudder
-- sun
 - birds
 - water interaction
 

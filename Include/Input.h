@@ -40,7 +40,8 @@ class Input
         QuitGame,
         ToggleAlbedoTextures,
         ToggleNormalMaps,
-    };
+        SetSunRise,
+      };
 
     enum class State
     {

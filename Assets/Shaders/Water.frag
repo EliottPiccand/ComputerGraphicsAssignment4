@@ -20,7 +20,6 @@ uniform mat4 u_ProjectionInverse;
 uniform mat4 u_ViewProjectionInverse;
 uniform vec4 u_SsrSettings;
 uniform vec4 u_WaterSurfaceColor;
-uniform vec3 u_LightDirection;
 uniform vec4 u_NormalMapScroll;
 uniform vec2 u_NormalMapScrollSpeed;
 uniform float u_Roughness;
@@ -40,7 +39,6 @@ uniform float u_FoamAngleExponent;
 
 uniform sampler2D u_WaterNormalMap1;
 uniform sampler2D u_WaterNormalMap2;
-uniform sampler2D u_EnvironmentMap;
 uniform sampler2D u_WaterFoamMap;
 uniform sampler2D u_WaterNoiseMap;
 uniform sampler2D u_HDRMap;
@@ -93,7 +91,7 @@ void main()
 
     float linearRoughness = u_Roughness * u_Roughness;
     vec3 viewDir = -normalize(input_.positionView.xyz);
-    vec3 lightDir = normalize((u_View * vec4(-u_LightDirection, 0.0)).xyz);
+    vec3 lightDir = normalize((u_View * vec4(-u_DirectionalLightDirection, 0.0)).xyz);
     vec3 half_ = normalize(viewDir + lightDir);
     float nDotL = saturate(dot(finalNormal, lightDir));
     float nDotV = abs(dot(finalNormal, viewDir)) + EPSILON;
@@ -185,7 +183,7 @@ void main()
 
     vec3 reflectionColor = texture(u_HDRMap, rayMarchTexPosition.xy).rgb;
     vec3 envReflection = mat3(u_ViewInverse) * reflectionVector;
-    vec3 skyboxColor = texture(u_EnvironmentMap, sampleEquirect(envReflection)).rgb;
+    vec3 skyboxColor = sampleEnvironmentMap(envReflection).rgb;
     reflectionColor = mix(skyboxColor, reflectionColor, ssrFactor);
 
     vec2 distortedTexCoord = hdrCoords + (finalNormal.xy * 0.5) * u_RefractionDistortionFactor;

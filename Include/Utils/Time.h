@@ -112,6 +112,8 @@ class Instant
 class Time
 {
   public:
+    static inline constexpr const Duration DAY_TIME = Duration::seconds(30.0f);
+
     static inline bool paused;
 
     [[nodiscard]] static Instant now();
@@ -123,7 +125,12 @@ class Time
     static float getDeltaTime();
     static float getDeltaTimeNoPause();
 
+    // 0: midnight, 0.5: noon
+    static float getTimeOfDay();
+    static void setTimeOfDay(float time_of_day);
+
   private:
     static inline float delta_time_;
     static inline Instant now_;
+    static inline float time_of_day_;
 };

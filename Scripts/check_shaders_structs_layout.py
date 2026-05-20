@@ -17,12 +17,12 @@ STRUCTS = {
             SHADER_DIR / "Particle.vert",
         ],
     ),
-    "DirectionalLight": (
-        INCLUDE_DIR / "Components" / "DirectionalLight.h",
-        [
-            SHADER_DIR / "PBR.frag",
-        ],
-    ),
+    # "PointLight": (
+    #     INCLUDE_DIR / "Components" / "PointLight.h",
+    #     [
+    #         SHADER_DIR / "Lights.frag",
+    #     ],
+    # ),
 }
 
 CPP_FIELDS_SIZE_AND_ALIGNMENT = {

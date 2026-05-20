@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <tuple>
 
 #include <Lib/OpenGL.h>
 #include <Lib/glm.h>
@@ -17,13 +18,20 @@ namespace component
 class Sky : public Component
 {
   public:
-    Sky(std::weak_ptr<resource::Texture> texture, std::vector<std::weak_ptr<resource::Shader>> shaders);
+    struct SkyboxEntry
+    {
+        std::weak_ptr<resource::Texture> texture;
+        float start_time;
+        float end_time;
+    };
+
+    Sky(std::vector<SkyboxEntry> textures, std::vector<std::weak_ptr<resource::Shader>> shaders);
 
     void render(glm::mat4 &transform) const override;
 
   private:
+    std::vector<SkyboxEntry> textures_;
     std::vector<std::weak_ptr<resource::Shader>> shaders_;
-    std::weak_ptr<resource::Texture> texture_;
 };
 
 } // namespace component

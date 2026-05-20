@@ -54,7 +54,6 @@ void Water::renderDefered(glm::mat4 &transform) const
     shader->setUniform("u_Model", transform);
     shader->setUniform("u_ModelInverse", glm::inverse(transform));
 
-    shader->setUniform("u_LightDirection",             glm::normalize(2.0f * DOWN + WEST + SOUTH));
     shader->setUniform("u_WaterSurfaceColor",          glm::vec4(0.465f, 0.797f, 0.991f, 1.0f));
     shader->setUniform("u_WaterRefractionColor",       glm::vec4(0.003f, 0.599f, 0.812f, 1.0f));
     shader->setUniform("u_SsrSettings",                glm::vec4(0.5f, 20.0f, 10.0f, 20.0f));

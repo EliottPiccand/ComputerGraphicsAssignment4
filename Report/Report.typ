@@ -365,6 +365,9 @@ Whenever a ship (player or enemies) fires a cannon ball, a small cloud of smoke 
 We used a sky box to render a realistic sky (see @fig:sky).
 A cube with its faces oriented inward is rendered at the very beginning of the scene, with its faces pushed at the far plane of the camera.
 On it, we mapped a HDR (High Dynamic Ranged) image of a sky.
+To update the sky box with the day time elapsing, we actually used 5 HDR textures, that transitions by blending into each others (see @fig:sky.night and @fig:sky.dusk).
+
+To achieve proper lighting, a directional light is used to simulate the sun, and change direction depending of the time of day.
 
 === Realistic Water
 To render the water, we used a multi-step rendering pass.
@@ -414,7 +417,8 @@ To help with debugging, a few debug options are available :
 - clicking `F` when in another view than Top View fire a cannon ball from the player ship;
 - the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East;
 - clicking `T` toggle on/off the rendering of Albedo textures;
-- clicking `N` toggle on/off the use of normal maps.
+- clicking `N` toggle on/off the use of normal maps;
+- clicking `L` restart the day from the sunrise.
 
 == Game Screenshots
 

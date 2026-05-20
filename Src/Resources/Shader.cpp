@@ -233,6 +233,13 @@ void Shader::setUniformArrayElement(std::string_view name, size_t index, const g
     glUniform3fv(uniform_location, 1, glm::value_ptr(value));
 }
 
+void Shader::setUniformArrayElement(std::string_view name, size_t index, float value) const
+{
+    const auto uniform_name = std::vformat(name, std::make_format_args(index));
+    const auto uniform_location = glGetUniformLocation(program_, uniform_name.c_str());
+    glUniform1f(uniform_location, value);
+}
+
 bool Shader::bindTexture(const char *name, GLint texture_unit) const
 {
     const auto uniform_location = glGetUniformLocation(program_, name);

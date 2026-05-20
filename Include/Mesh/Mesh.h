@@ -31,6 +31,7 @@ template <typename V> using Mesh = std::pair<std::vector<V>, std::vector<IndexTy
 [[nodiscard]] Mesh<VertexDebug> generateFrustrum(double near, double fov, double aspect_ratio = 16.0 / 9.0);
 
 [[nodiscard]] Mesh<VertexUI> generateQuad();
+[[nodiscard]] Mesh<VertexPBR> generateWorldQuad();
 
 [[nodiscard]] Mesh<VertexPBR> generateFlag(size_t strip_count, float width, float height, float uv_top = 0.0f,
                                            float uv_left = 0.0f, float uv_bottom = 0.0f, float uv_right = 0.0f);

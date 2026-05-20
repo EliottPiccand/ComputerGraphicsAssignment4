@@ -9,16 +9,6 @@ uniform bool u_UseNormalMaps;
 
 uniform vec3 u_CameraPosition;
 
-struct DirectionalLight
-{
-    vec3 direction;
-    vec3 color;
-};
-uniform int u_DirectionalLightCount;
-uniform DirectionalLight u_DirectionalLights[MAX_DIRECTIONAL_LIGHTS];
-
-uniform vec3 u_AmbientColor;
-
 uniform vec4 u_AlbedoColor;
 uniform sampler2D u_AlbedoTexture;
 
@@ -33,8 +23,6 @@ uniform sampler2D u_NormalMap;
 
 uniform vec3 u_EmissiveColor;
 uniform sampler2D u_EmissiveTexture;
-
-uniform sampler2D u_EnvironmentMap;
 
 out vec4 out_Color;
 out vec4 out_Normal;
@@ -92,43 +80,26 @@ void main()
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
 
-    // - Directionals
-    for (int i = 0; i < u_DirectionalLightCount; i++)
+    // - Directional
+    Lo += directionaLight(u_DirectionalLightDirection, u_DirectionalLightColor, V, N, albedo, roughness, metallic, F0);
+
+    // - Points
+    for (int i = 0; i < u_PointLightCount; i++)
     {
-        DirectionalLight light = u_DirectionalLights[i];
-
-        vec3 L = normalize(-light.direction);
-        vec3 H = normalize(V + L);
-
-        float NdotL = saturate(dot(N, L));
-
-        float D = CalculateNormalDistributionGGX(roughness, saturate(dot(N, H)));
-        float G = CalculateSmithGGXGeometryTerm(roughness, saturate(dot(N, L)), saturate(dot(N, V)));
-        vec3  F = CalculateSchlickFresnelReflectance(saturate(dot(H, V)), F0);
-    
-        vec3  numerator = D * G * F;
-        float denominator = 4.0 * saturate(dot(N, V)) * NdotL + 0.0001;
-        vec3  specular = numerator / denominator;
-
-        vec3 kS = F;
-        vec3 kD = (1.0 - kS) * (1.0 - metallic);
-
-        vec3 diffuse = kD * albedo / PI;
-
-        vec3 radiance = light.color;
-        Lo += (diffuse + specular) * radiance * NdotL;
+        PointLight light = u_PointLights[i];
+        Lo += pointLight(light, in_Pos, V, N, albedo, roughness, metallic, F0);
     }
 
     // Ambient
     vec3 R = reflect(-V, N);
     vec3 equiR = vec3(R.x, R.z, -R.y);
     float lod = roughness * 10.0;
-    vec3 envColor = textureLod(u_EnvironmentMap, sampleEquirect(equiR), lod).rgb;
+    vec3 envColor = sampleEnvironmentMapLOD(equiR, lod).rgb;
 
     vec3 F_amb = CalculateSchlickFresnelRoughness(saturate(dot(N, V)), F0, roughness);
     vec3 kD_amb = (1.0 - F_amb) * (1.0 - metallic);
 
-    vec3 ambient_diffuse = kD_amb * albedo * u_AmbientColor;
+    vec3 ambient_diffuse = kD_amb * albedo * u_AmbientLight;
     vec3 ambient_specular = F_amb * envColor * (1.0 - roughness);
     vec3 ambient = ambient_diffuse + ambient_specular;
 

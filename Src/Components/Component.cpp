@@ -10,6 +10,11 @@ void Component::update()
 {
 }
 
+void Component::preRender(glm::mat4 &transform) const
+{
+    (void)transform;
+}
+
 void Component::render(glm::mat4 &transform) const
 {
     (void)transform;

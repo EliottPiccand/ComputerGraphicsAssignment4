@@ -724,12 +724,6 @@ void Model::drawInner(std::shared_ptr<resource::Shader> shader, MaterialsOverrid
         getTexture(material.emissive_texture, Texture::Type::Emissive)
             ->bind(Texture::EMISSIVE_SLOT, shader, "u_EmissiveTexture");
 
-        // Environment Map
-        if (ResourceLoader::isLoaded<Texture>("Sky/SkyBox"))
-        {
-            ResourceLoader::get<Texture>("Sky/SkyBox")->bind(Texture::ENVIRONMENT_MAP_SLOT, shader, "u_EnvironmentMap");
-        }
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.index_buffer);
 
         if (intance_count.has_value())

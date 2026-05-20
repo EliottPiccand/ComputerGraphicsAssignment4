@@ -25,12 +25,13 @@ class Texture
     constexpr const static inline GLuint NORMAL_MAP_SLOT         = 2;
     constexpr const static inline GLuint NORMAL_MAP_SLOT_2       = 3;
     constexpr const static inline GLuint EMISSIVE_SLOT           = 4;
-    constexpr const static inline GLuint ENVIRONMENT_MAP_SLOT    = 5;
-    constexpr const static inline GLuint COLOR_SLOT              = 6;
-    constexpr const static inline GLuint DEPTH_SLOT              = 7;
-    constexpr const static inline GLuint NOISE_MAP_SLOT          = 8;
-    constexpr const static inline GLuint NOISE_MAP_SLOT_2        = 9;
-    constexpr const static inline GLuint NORMALS_SLOT            = 10; /// framebuffer normals texture
+    constexpr const static inline GLuint ENVIRONMENT_MAP_SLOT_1  = 5;
+    constexpr const static inline GLuint ENVIRONMENT_MAP_SLOT_2  = 6;
+    constexpr const static inline GLuint COLOR_SLOT              = 7;
+    constexpr const static inline GLuint DEPTH_SLOT              = 8;
+    constexpr const static inline GLuint NOISE_MAP_SLOT          = 9;
+    constexpr const static inline GLuint NOISE_MAP_SLOT_2        = 10;
+    constexpr const static inline GLuint NORMALS_SLOT            = 11; /// framebuffer normals texture
     // clang-format on
 
     enum class Type

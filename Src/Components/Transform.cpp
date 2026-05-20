@@ -117,6 +117,11 @@ void Transform::pointToward(const glm::vec3 &direction)
     rotation_ = glm::normalize(glm::angleAxis(rotation_angle, rotation_axis / axis_length) * rotation_);
 }
 
+void Transform::preRender(glm::mat4 &transform) const
+{
+    render(transform);
+}
+
 void Transform::render(glm::mat4 &transform) const
 {
     ProfileScope;
