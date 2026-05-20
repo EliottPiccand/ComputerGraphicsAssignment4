@@ -51,8 +51,9 @@
 #include "Utils/Profiling.h"
 #include "Utils/Random.h"
 #include "Utils/Time.h"
+#include "glm/gtc/constants.hpp"
 
-constexpr const bool DEBUG_SCENE = true;
+constexpr const bool DEBUG_SCENE = false;
 
 #pragma region model_settings
 
@@ -153,6 +154,34 @@ constexpr const glm::vec3 MESSAGE_POSITION = UP * 60.0f;
 
 constexpr const Duration HIT_VIGNETTE_DURATION = Duration::milliseconds(800.0f);
 
+constexpr const glm::vec3 ISLAND_MODEL_TRANSLATION = ZERO;
+constexpr const glm::vec3 ISLAND_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 ISLAND_MODEL_SCALE = 0.5f * ONE;
+
+constexpr const glm::vec3 PALM_TREE_MODEL_TRANSLATION = ZERO;
+constexpr const glm::vec3 PALM_TREE_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 PALM_TREE_MODEL_SCALE = 2.1f * ONE;
+
+constexpr const glm::vec3 STONE_MODEL_TRANSLATION = ZERO;
+constexpr const glm::vec3 STONE_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 STONE_MODEL_SCALE = ONE;
+
+constexpr const glm::vec3 TENT_MODEL_TRANSLATION = ZERO;
+constexpr const glm::vec3 TENT_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 TENT_MODEL_SCALE = ONE;
+
+constexpr const glm::vec3 BARREL_MODEL_TRANSLATION = ZERO;
+constexpr const glm::vec3 BARREL_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 BARREL_MODEL_SCALE = ONE;
+
+constexpr const glm::vec3 PIER_MODEL_TRANSLATION = MODEL_DOWN * 1.5f;
+constexpr const glm::vec3 PIER_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 PIER_MODEL_SCALE = ONE;
+
+constexpr const glm::vec3 PLANT_MODEL_TRANSLATION = ZERO;
+constexpr const glm::vec3 PLANT_MODEL_ROTATION = ZERO;
+constexpr const glm::vec3 PLANT_MODEL_SCALE = ONE;
+
 #pragma endregion model_settings
 
 #pragma region camera_settings
@@ -247,6 +276,10 @@ const auto CANNON_BALL_SPARK_ANIMATION_FACTORY = [] {
         };
     return animation_callback;
 };
+
+constexpr const Duration FIRE_CAMP_PARTICLE_SPAWN_INTERVAL = Duration::milliseconds(5.0f);
+constexpr const Color FIRE_CAMP_PARTICLE_COLOR_1 = rgba(252, 233, 62, 1);
+constexpr const Color FIRE_CAMP_PARTICLE_COLOR_2 = rgba(255, 29, 29, 1);
 
 #pragma endregion particles_settings
 
@@ -357,13 +390,20 @@ Application::Application()
     
     LOG_INFO("loading 3d models");
 
-    ResourceLoader::load<resource::Model>("CannonBall",    "CannonBall/CannonBall.gltf"    );
-    ResourceLoader::load<resource::Model>("Rocks/1",       "Rocks/Rock1.gltf"              );
-    ResourceLoader::load<resource::Model>("Rocks/2",       "Rocks/Rock2.gltf"              );
-    ResourceLoader::load<resource::Model>("Rocks/3",       "Rocks/Rock3.gltf"              );
-    ResourceLoader::load<resource::Model>("Ship",          "Ship/Ship.gltf"                );
-    ResourceLoader::load<resource::Model>("Cannon/Stand",  "CannonStand/CannonStand.gltf"  );
-    ResourceLoader::load<resource::Model>("Cannon/Barrel", "CannonBarrel/CannonBarrel.gltf");
+    ResourceLoader::load<resource::Model>("CannonBall",      "CannonBall/CannonBall.gltf"    );
+    ResourceLoader::load<resource::Model>("Rocks/1",         "Rocks/Rock1.gltf"              );
+    ResourceLoader::load<resource::Model>("Rocks/2",         "Rocks/Rock2.gltf"              );
+    ResourceLoader::load<resource::Model>("Rocks/3",         "Rocks/Rock3.gltf"              );
+    ResourceLoader::load<resource::Model>("Ship",            "Ship/Ship.gltf"                );
+    ResourceLoader::load<resource::Model>("Cannon/Stand",    "CannonStand/CannonStand.gltf"  );
+    ResourceLoader::load<resource::Model>("Cannon/Barrel",   "CannonBarrel/CannonBarrel.gltf");
+    ResourceLoader::load<resource::Model>("Island/Island",   "Island/Island.gltf"            );
+    ResourceLoader::load<resource::Model>("Island/PalmTree", "Island/PalmTree.gltf"          );
+    ResourceLoader::load<resource::Model>("Island/Stone",    "Island/Stone.gltf"             );
+    ResourceLoader::load<resource::Model>("Island/Tent",     "Island/Tent.gltf"              );
+    ResourceLoader::load<resource::Model>("Island/Barrel",   "Island/Barrel.gltf"            );
+    ResourceLoader::load<resource::Model>("Island/Pier",     "Island/Pier.gltf"              );
+    ResourceLoader::load<resource::Model>("Island/Plant",    "Island/Plant.gltf"             );
     
     ResourceLoader::load<resource::Model>("Effect", generateQuad());
     ResourceLoader::load<resource::Model>("Radar/Cylinder",
@@ -524,7 +564,7 @@ Application::Application()
             const float elevation = sun_curve * MAX_ELEVATION;
 
             const glm::vec3 horizontal = std::cos(azimuth) * EAST + std::sin(azimuth) * NORTH;
-            sun->direction = std::cos(elevation) * horizontal + std::sin(elevation) * UP;
+            sun->direction = -(std::cos(elevation) * horizontal + std::sin(elevation) * UP);
             const float day_intensity = glm::mix(MIN_DAY_INTENSITY_FACTOR, 1.0f, sun_curve * sun_curve);
             sun->intensity = day_intensity * SUN_INTENSITY;
         });
@@ -630,6 +670,62 @@ Application::Application()
             rock_3_model->addComponent<component::Transform>(ROCK_MODEL_TRANSLATION, ROCK_MODEL_ROTATION, ROCK_MODEL_SCALE);
             rock_3_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Rocks/3"));
         
+            // Island
+            auto island = scene_root_->addChild();
+            island->addComponent<component::Transform>(EAST * 20.0f + SOUTH * 20.0f);
+
+            auto island_model = island->addChild();
+            island_model->addComponent<component::Transform>(ISLAND_MODEL_TRANSLATION, ISLAND_MODEL_ROTATION, ISLAND_MODEL_SCALE);
+            island_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Island"));
+
+            // Palm Tree
+            auto palm_tree = scene_root_->addChild();
+            palm_tree->addComponent<component::Transform>(EAST * 20.0f + SOUTH * 20.0f);
+
+            auto palm_tree_model = palm_tree->addChild();
+            palm_tree_model->addComponent<component::Transform>(PALM_TREE_MODEL_TRANSLATION, PALM_TREE_MODEL_ROTATION, PALM_TREE_MODEL_SCALE);
+            palm_tree_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/PalmTree"));
+
+            // Stone
+            auto stone = scene_root_->addChild();
+            stone->addComponent<component::Transform>(EAST * 20.0f + SOUTH * 22.0f + UP);
+
+            auto stone_model = stone->addChild();
+            stone_model->addComponent<component::Transform>(STONE_MODEL_TRANSLATION, STONE_MODEL_ROTATION, STONE_MODEL_SCALE);
+            stone_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Stone"));
+
+            // Tent
+            auto tent = scene_root_->addChild();
+            tent->addComponent<component::Transform>(EAST * 25.0f + SOUTH * 20.0f + UP);
+
+            auto tent_model = tent->addChild();
+            tent_model->addComponent<component::Transform>(TENT_MODEL_TRANSLATION, TENT_MODEL_ROTATION, TENT_MODEL_SCALE);
+            tent_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Tent"));
+
+            // Barrel
+            auto barrel = scene_root_->addChild();
+            barrel->addComponent<component::Transform>(EAST * 30.0f + SOUTH * 20.0f + UP);
+
+            auto barrel_model = barrel->addChild();
+            barrel_model->addComponent<component::Transform>(BARREL_MODEL_TRANSLATION, BARREL_MODEL_ROTATION, BARREL_MODEL_SCALE);
+            barrel_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Barrel"));
+
+            // Pier
+            auto pier = scene_root_->addChild();
+            pier->addComponent<component::Transform>(EAST * 35.0f + SOUTH * 20.0f);
+
+            auto pier_model = pier->addChild();
+            pier_model->addComponent<component::Transform>(PIER_MODEL_TRANSLATION, PIER_MODEL_ROTATION, PIER_MODEL_SCALE);
+            pier_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Pier"));
+
+            // Plant
+            auto plant = scene_root_->addChild();
+            plant->addComponent<component::Transform>(EAST * 37.0f + SOUTH * 20.0f + UP);
+
+            auto plant_model = plant->addChild();
+            plant_model->addComponent<component::Transform>(PLANT_MODEL_TRANSLATION, PLANT_MODEL_ROTATION, PLANT_MODEL_SCALE);
+            plant_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Plant"));
+
             /**************/
             /*   Lights   */
             /**************/
@@ -771,6 +867,26 @@ Application::Application()
                     glm::vec3(transform->resolve()[3]),
                     particle_count);
             });
+
+            // Fire Camp
+            auto fire_camp = scene_root_->addChild();
+            fire_camp->addComponent<component::Transform>(EAST * 45.0f + NORTH * 10.0f + UP);
+            fire_camp->addComponent<component::Animation>([last_spawn = Time::now() - FIRE_CAMP_PARTICLE_SPAWN_INTERVAL](
+                std::shared_ptr<component::Transform> transform,
+                std::shared_ptr<GameObject> game_object
+            ) mutable {
+                (void)game_object;
+            
+                const auto particle_count = static_cast<size_t>((Time::now() - last_spawn).toSeconds() / FIRE_CAMP_PARTICLE_SPAWN_INTERVAL.toSeconds());
+                if (particle_count == 0)
+                    return;
+                last_spawn = Time::now();
+
+                EventQueue::post<event::SpawnParticles>(
+                    event::SpawnParticles::Type::FireCamp,
+                    glm::vec3(transform->resolve()[3]),
+                    particle_count);
+            });
         }
         else
         {
@@ -889,6 +1005,132 @@ Application::Application()
                     rock_model->addComponent<component::ModelInstance>(random_rock_model);
                 }
             }
+
+            // - Island
+            auto island = scene_root_->addChild();
+            island->addComponent<component::Transform>(WORLD_WIDTH * 0.85f * 0.5f * EAST);
+            
+            auto island_model = island->addChild();
+            island_model->addComponent<component::Transform>(ISLAND_MODEL_TRANSLATION, ISLAND_MODEL_ROTATION, ISLAND_MODEL_SCALE);
+            island_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Island"));
+
+            constexpr const std::array PALM_TREE_POSITIONS = {
+                NORTH * 3.0f + EAST * 0.2f + UP * 0.7f,
+                SOUTH * 2.8f + EAST * 1.2f + UP * 0.7f,
+                NORTH * 0.5f + WEST * 2.6f + UP * 0.7f,
+            };
+
+            constexpr const std::array PALM_TREE_ANGLES = {
+                1.2f,
+                0.1f,
+                3.6f,
+            };
+
+            // - - Palm Tree
+            for (const auto [position, angle] : std::views::zip(PALM_TREE_POSITIONS, PALM_TREE_ANGLES))
+            {
+                auto palm_tree = island->addChild();
+                palm_tree->addComponent<component::Transform>(position, angle * UP);
+
+                auto palm_tree_model = palm_tree->addChild();
+                palm_tree_model->addComponent<component::Transform>(PALM_TREE_MODEL_TRANSLATION, PALM_TREE_MODEL_ROTATION, PALM_TREE_MODEL_SCALE);
+                palm_tree_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/PalmTree"));
+            }
+        
+            // - - Tent
+            auto tent = island->addChild();
+            tent->addComponent<component::Transform>(UP * 0.8f, glm::radians(-90.0f) * UP);
+
+            auto tent_model = tent->addChild();
+            tent_model->addComponent<component::Transform>(TENT_MODEL_TRANSLATION, TENT_MODEL_ROTATION, TENT_MODEL_SCALE);
+            tent_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Tent"));
+
+            // - - Fire Camp
+            auto fire_camp = island->addChild();
+            fire_camp->addComponent<component::Transform>(WEST * 2.0f + SOUTH + UP * 0.65f);
+            std::weak_ptr weak_fire_camp_light = fire_camp->addComponent<component::PointLight>(color::WHITE, 10.0f);
+            fire_camp->addComponent<component::Animation>([weak_fire_camp_light, target_intensity = 1.0f, target_color_mix = 0.9f, current_color_mix = 0.0f](
+                std::shared_ptr<component::Transform> transform,
+                std::shared_ptr<GameObject> game_object
+            ) mutable {
+                (void)transform;
+                (void)game_object;
+            
+                auto light = weak_fire_camp_light.lock();
+        
+                light->intensity += glm::sign(target_intensity - light->intensity) * Random::random(0.5f, 5.0f) * Time::getDeltaTime();
+                if (std::abs(light->intensity - target_intensity) < EPSILON)
+                {
+                    target_intensity = Random::random(0.5f, 30.0f);
+                }
+
+                current_color_mix += glm::sign(target_color_mix - current_color_mix) * Random::random(0.1f, 0.6f) * Time::getDeltaTime();
+                if (std::abs(current_color_mix - target_color_mix) < EPSILON)
+                {
+                    target_color_mix = Random::random(0.0f, 1.0f);
+                }
+                light->color = glm::mix(FIRE_CAMP_PARTICLE_COLOR_1, FIRE_CAMP_PARTICLE_COLOR_2, current_color_mix);
+            });
+            fire_camp->addComponent<component::Animation>([last_spawn = Time::now() - FIRE_CAMP_PARTICLE_SPAWN_INTERVAL](
+                std::shared_ptr<component::Transform> transform,
+                std::shared_ptr<GameObject> game_object
+            ) mutable {
+                (void)game_object;
+            
+                const auto particle_count = static_cast<size_t>((Time::now() - last_spawn).toSeconds() / FIRE_CAMP_PARTICLE_SPAWN_INTERVAL.toSeconds());
+                if (particle_count == 0)
+                    return;
+                last_spawn = Time::now();
+
+                EventQueue::post<event::SpawnParticles>(
+                    event::SpawnParticles::Type::FireCamp,
+                    glm::vec3(transform->resolve()[3]),
+                    particle_count);
+            });
+
+            constexpr const size_t FIRE_CAMP_STONES = 24;
+            constexpr const float FIRE_CAMP_STONES_RADIUS = 0.8f;
+
+            for (size_t i = 0; i < FIRE_CAMP_STONES; ++i)
+            {
+                const auto angle = static_cast<float>(i) / static_cast<float>(FIRE_CAMP_STONES) * glm::two_pi<float>();
+
+                auto stone = fire_camp->addChild();
+                stone->addComponent<component::Transform>(
+                    glm::rotate(NORTH * FIRE_CAMP_STONES_RADIUS, angle, UP),
+                    glm::normalize(Random::direction() * Random::radians()),
+                    Random::random(0.3f, 0.5f) * ONE
+                );
+
+                auto stone_model = stone->addChild();
+                stone_model->addComponent<component::Transform>(STONE_MODEL_TRANSLATION, STONE_MODEL_ROTATION, STONE_MODEL_SCALE);
+                stone_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Stone"));
+
+            }
+
+            // - - Barrel
+            auto barrel = island->addChild();
+            barrel->addComponent<component::Transform>(WEST * 2.0f + NORTH * 1.0f + UP * 0.4f);
+
+            auto barrel_model = barrel->addChild();
+            barrel_model->addComponent<component::Transform>(BARREL_MODEL_TRANSLATION, BARREL_MODEL_ROTATION, BARREL_MODEL_SCALE);
+            barrel_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Barrel"));
+
+            // - - Pier
+            auto pier = island->addChild();
+            pier->addComponent<component::Transform>(WEST * 5.0f + DOWN * 0.2f, glm::radians(-90.0f) * UP);
+
+            auto pier_model = pier->addChild();
+            pier_model->addComponent<component::Transform>(PIER_MODEL_TRANSLATION, PIER_MODEL_ROTATION, PIER_MODEL_SCALE);
+            pier_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Pier"));
+
+            // - - Plant
+            auto plant = island->addChild();
+            plant->addComponent<component::Transform>(UP * 0.6f + SOUTH * 2.0f);
+
+            auto plant_model = plant->addChild();
+            plant_model->addComponent<component::Transform>(PLANT_MODEL_TRANSLATION, PLANT_MODEL_ROTATION, PLANT_MODEL_SCALE);
+            plant_model->addComponent<component::ModelInstance>(ResourceLoader::get<resource::Model>("Island/Plant"));
         
             // - Player
             auto [player_ship, player_health_bar, player_cannon, player_cannon_barrel_transform] = addShip(PLAYER_SHIP_MATERIALS_OVERRIDE, "Ship/PlayerVariant", std::nullopt);
@@ -1071,6 +1313,10 @@ Application::Application()
             });
 
         cannon_ball->addComponent<component::Animation>(CANNON_BALL_SPARK_ANIMATION_FACTORY());
+        
+        auto cannon_ball_back = cannon_ball->addChild();
+        cannon_ball_back->addComponent<component::Transform>(MODEL_BACKWARD * 0.5f);
+        cannon_ball_back->addComponent<component::PointLight>(glm::mix(FIRE_CAMP_PARTICLE_COLOR_1, FIRE_CAMP_PARTICLE_COLOR_2, Random::random(0.0f, 1.0f)), 5.0f);
 
         if (event.shooter == player_id_)
         {
@@ -1261,6 +1507,24 @@ Application::Application()
                 particle.life     = CANNON_BALL_SPARK_PARTICLE_MAX_LIFETIME.toSeconds();
                 particle.scale    = {0.1f, 0.1f};
                 particle.is_subject_to_gravity = true;
+            }
+        }
+        break;
+        case event::SpawnParticles::Type::FireCamp: {
+            constexpr const float    FIRE_CAMP_POSITION_SPREAD_RADIUS = 0.5f;
+            constexpr const float    FIRE_CAMP_PARTICLE_SPREAD        = glm::radians(20.0f);
+            constexpr const Duration FIRE_CAMP_PARTICLE_MAX_LIFETIME  = Duration::milliseconds(600.0f);
+
+            for (auto &particle : particles)
+            {
+                const auto position_spread = Random::random(0.0f, 1.0f);
+
+                particle.position = event.position + position_spread * FIRE_CAMP_POSITION_SPREAD_RADIUS * glm::rotate(NORTH, Random::radians(), UP);
+                particle.velocity = Random::direction(UP, FIRE_CAMP_PARTICLE_SPREAD);
+                particle.color    = glm::mix(FIRE_CAMP_PARTICLE_COLOR_1, FIRE_CAMP_PARTICLE_COLOR_2, Random::random(0.0f, 1.0f));
+                particle.life     = FIRE_CAMP_PARTICLE_MAX_LIFETIME.toSeconds() * (1.0f - position_spread) * (1.0f - position_spread);
+                particle.scale    = {0.2f, 0.2f};
+                particle.is_subject_to_gravity = false;
             }
         }
         break;

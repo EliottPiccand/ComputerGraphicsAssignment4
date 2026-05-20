@@ -95,3 +95,5 @@ git checkout v0.13.1
 - Rocks : [Fantasy landscape by 
 _Pxltiger_](https://assetstore.unity.com/packages/3d/environments/fantasy-landscape-103573)
 - SkyBox : [Stylized Skyboxes | FREE by _Staggart Creations_](https://assetstore.unity.com/packages/2d/textures-materials/sky/stylized-skyboxes-free-302248)
+- Island props : [Low Poly Tropical Island Lite by _JustCreate_](https://assetstore.unity.com/packages/3d/environments/low-poly-tropical-island-lite-242437)
+- Island Sand : [Yughues Free Sand Materials by _Nobiax / Yughues_](https://assetstore.unity.com/packages/2d/textures-materials/nature/yughues-free-sand-materials-12964)

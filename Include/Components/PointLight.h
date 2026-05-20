@@ -30,12 +30,12 @@ class PointLight : public Component
     static void endPreRender();
     void preRender(glm::mat4 &transform) const override;
 
+    Color color;
+    float intensity;
+
   private:
     static inline std::vector<std::weak_ptr<resource::Shader>> shaders_;
     static inline size_t lights_drawn_on_this_frame_;
-
-    Color color_;
-    float intensity_;
 };
 
 } // namespace component

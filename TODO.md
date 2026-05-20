@@ -25,8 +25,8 @@
 - ~~toggle normal maps with 'n'~~
 - ~~moving sunlight~~
 - ~~light points:~~
-    - island firecamp/lantern
-    - cannonballs
+    - ~~island firecamp~~
+    - ~~cannonballs~~
 - particle lighting
 - Gouraud shading mode (cycle with 'g')
 - Phong shading mode (cycle with 'g')
@@ -60,6 +60,7 @@
 - moonlight
 - moon
 - sun
+- smoke above firecamp
 - fireworks on win
 - sink animation
 - rotating ship wheel

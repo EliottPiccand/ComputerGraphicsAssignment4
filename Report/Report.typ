@@ -107,6 +107,7 @@ Our program contains several features, including:
 - damage system;
 - victory / defeat display;
 - multiple views;
+- lighing;
 // additional goals
 - explosion effects;
 - camera shaking;
@@ -282,6 +283,17 @@ The game feature 3 view modes:
 - The Free View (for debug purposes, toggled by clicking `Enter`);
 - The Cannon/Cannon ball view: if at least one cannon ball fired by the player is still flying, the camera follow the last fired one (see @fig:cannon-ball-view). Otherwise, it is located near the player's cannon, facing toward the target (see @fig:cannon-view).
 
+=== Lighting
+The game support 2 types of lights.
+
+==== Directional Lights
+A directional light is used to simulate the sun, and change direction depending of the time of day.
+
+==== Point Lights
+Points lights are used in various places in the game:
+- On the eastern island's fireplace (see @fig:firecamp) (the light color and intensity change with time to simulate the fire);
+- On the cannon balls' stem.
+
 === Explosion Effects
 When a cannon ball hit anything but water, it spawn an explosion (see @fig:explosion).
 To render it, we used 2500 particles with different colors and velocity.
@@ -366,8 +378,6 @@ We used a sky box to render a realistic sky (see @fig:sky).
 A cube with its faces oriented inward is rendered at the very beginning of the scene, with its faces pushed at the far plane of the camera.
 On it, we mapped a HDR (High Dynamic Ranged) image of a sky.
 To update the sky box with the day time elapsing, we actually used 5 HDR textures, that transitions by blending into each others (see @fig:sky.night and @fig:sky.dusk).
-
-To achieve proper lighting, a directional light is used to simulate the sun, and change direction depending of the time of day.
 
 === Realistic Water
 To render the water, we used a multi-step rendering pass.

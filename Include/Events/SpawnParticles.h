@@ -20,6 +20,7 @@ struct SpawnParticles : public Event
         FoamTrail,
         WaterSplash,
         CannonBallSpark,
+        FireCamp,
     };
 
     const Type type;

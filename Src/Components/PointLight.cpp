@@ -3,7 +3,7 @@
 #include "Utils/Log.h"
 #include "Utils/Profiling.h"
 
-component::PointLight::PointLight(Color color, float intensity) : color_(color), intensity_(intensity)
+component::PointLight::PointLight(Color c, float i) : color(c), intensity(i)
 {
 }
 
@@ -54,8 +54,8 @@ void component::PointLight::preRender(glm::mat4 &transform) const
 
         shader->bind();
         shader->setUniformArrayElement("u_PointLights[{}].position", lights_drawn_on_this_frame_, position);
-        shader->setUniformArrayElement("u_PointLights[{}].color", lights_drawn_on_this_frame_, glm::vec3(color_));
-        shader->setUniformArrayElement("u_PointLights[{}].intensity", lights_drawn_on_this_frame_, intensity_);
+        shader->setUniformArrayElement("u_PointLights[{}].color", lights_drawn_on_this_frame_, glm::vec3(color));
+        shader->setUniformArrayElement("u_PointLights[{}].intensity", lights_drawn_on_this_frame_, intensity);
     }
 
     lights_drawn_on_this_frame_ += 1;
