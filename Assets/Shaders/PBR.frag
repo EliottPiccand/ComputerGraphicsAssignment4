@@ -3,6 +3,7 @@
 layout(location = 0) in vec3 in_Pos;
 layout(location = 1) in vec3 in_Normal;
 layout(location = 2) in vec2 in_UV;
+layout(location = 3) in vec3 in_GouraudDirect;
 
 uniform bool u_UseAlbedoTextures;
 uniform bool u_UseNormalMaps;
@@ -80,15 +81,8 @@ void main()
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
     vec3 Lo = vec3(0.0);
 
-    // - Directional
-    Lo += directionaLight(u_DirectionalLightDirection, u_DirectionalLightColor, V, N, albedo, roughness, metallic, F0);
-
-    // - Points
-    for (int i = 0; i < u_PointLightCount; i++)
-    {
-        PointLight light = u_PointLights[i];
-        Lo += pointLight(light, in_Pos, V, N, albedo, roughness, metallic, F0);
-    }
+    // - Direct lighting (directional + points)
+    Lo += computeDirectLighting(in_Pos, V, N, albedo, roughness, metallic, F0, in_GouraudDirect);
 
     // Ambient
     vec3 R = reflect(-V, N);

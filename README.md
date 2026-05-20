@@ -25,7 +25,8 @@ To help with debugging, a few debug options are available :
 - the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East;
 - releasing `T` toggle on/off the rendering of Albedo textures;
 - releasing `N` toggle on/off the use of normal maps;
-- releasing `L` restart the day from the sunrise.
+- releasing `L` restart the day from the sunrise;
+- releasing `G` cycles through the different shading modes: GGX/TrowbridgeReitz-Reitz, Gouraud and Phong.
 
 ## Building the game
 This project use CMake for compiling, and Python for moving assets.

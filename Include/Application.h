@@ -8,6 +8,7 @@
 #include "Components/Camera3D.h"
 #include "Components/FreeViewControls.h"
 #include "GameObject.h"
+#include "Utils/ShadingModes.h"
 #include "Utils/View.h"
 #include "Window.h"
 
@@ -43,6 +44,9 @@ class Application
 
     bool render_albedo_textures_;
     bool render_normal_maps_;
+
+    ShadingMode shading_mode_;
+    std::vector<std::weak_ptr<resource::Shader>> shaded_shaders_;
 
     void initializeOpenGL();
     void updateShaderSettings();

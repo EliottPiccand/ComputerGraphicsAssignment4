@@ -16,6 +16,19 @@ uniform float u_Width;
 layout(location = 0) out vec3 out_Pos;
 layout(location = 1) out vec3 out_Normal;
 layout(location = 2) out vec2 out_UV;
+layout(location = 3) out vec3 out_GouraudDirect;
+
+uniform bool u_UseAlbedoTextures;
+uniform sampler2D u_AlbedoTexture;
+uniform vec4 u_AlbedoColor;
+uniform float u_MetallicFactor;
+uniform float u_RoughnessFactor;
+uniform vec3 u_CameraPosition;
+uniform sampler2D u_MetallicRoughnessTexture;
+uniform sampler2D u_EmissiveTexture;
+uniform vec3 u_AmbientLight;
+uniform vec3 u_DirectionalLightDirection;
+uniform vec3 u_DirectionalLightColor;
 
 #ifdef FLAP
 
@@ -81,4 +94,30 @@ void main()
     out_Pos = posWorld.xyz;
     out_Normal = normalize(u_ModelNormal * normal);
     out_UV = in_UV;
+    out_GouraudDirect = vec3(0.0);
+
+    // Precompute direct lighting at vertices for Gouraud shading (uses same light helpers)
+    vec3 N = out_Normal;
+    vec3 V = normalize(u_CameraPosition - out_Pos);
+
+    vec3 albedo = (u_UseAlbedoTextures ? texture(u_AlbedoTexture, out_UV).rgb : vec3(u_AlbedoColor.rgb));
+    vec2 mr = texture(u_MetallicRoughnessTexture, out_UV).gb;
+    float roughness = max(mr.r * u_RoughnessFactor, 0.04);
+    float metallic  =     mr.g * u_MetallicFactor;
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    // Minimal per-vertex direct lighting: directional-only Blinn-Phong approximation
+    vec3 Lo = vec3(0.0);
+    {
+        vec3 L = normalize(-u_DirectionalLightDirection);
+        vec3 H = normalize(V + L);
+        float NdotL = max(dot(N, L), 0.0);
+        float shininess = clamp(1.0 / max(roughness, 0.001) * 32.0, 1.0, 256.0);
+        float spec = pow(max(dot(N, H), 0.0), shininess);
+        vec3 diff = albedo * NdotL;
+        vec3 specCol = mix(vec3(0.04), albedo, metallic) * spec;
+        Lo += (diff + specCol) * u_DirectionalLightColor;
+    }
+
+    out_GouraudDirect = Lo;
 }

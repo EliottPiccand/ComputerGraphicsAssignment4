@@ -41,6 +41,7 @@ class Input
         ToggleAlbedoTextures,
         ToggleNormalMaps,
         SetSunRise,
+        CycleShadingMode,
       };
 
     enum class State

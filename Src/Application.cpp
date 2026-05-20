@@ -51,7 +51,6 @@
 #include "Utils/Profiling.h"
 #include "Utils/Random.h"
 #include "Utils/Time.h"
-#include "glm/gtc/constants.hpp"
 
 constexpr const bool DEBUG_SCENE = true;
 
@@ -284,7 +283,8 @@ constexpr const Color FIRE_CAMP_PARTICLE_COLOR_2 = rgba(255, 29, 29, 1);
 #pragma endregion particles_settings
 
 Application::Application()
-    : should_close_(false), free_view_override_(false), render_albedo_textures_(true), render_normal_maps_(true)
+    : should_close_(false), free_view_override_(false), render_albedo_textures_(true), render_normal_maps_(true),
+      shading_mode_(ShadingMode::GGXTrowbridgeReitz)
 {
     ProfileScope;
 
@@ -322,6 +322,7 @@ Application::Application()
     Input::bindKey(Input::Action::ToggleAlbedoTextures, GLFW_KEY_T         );
     Input::bindKey(Input::Action::ToggleNormalMaps,     GLFW_KEY_N         );
     Input::bindKey(Input::Action::SetSunRise,           GLFW_KEY_L         );
+    Input::bindKey(Input::Action::CycleShadingMode,     GLFW_KEY_G         );
 
     /******************************************************************************/
     /*                                   Shaders                                  */
@@ -485,6 +486,12 @@ Application::Application()
     resource::Texture::MISSING_ALBEDO             = ResourceLoader::get<resource::Texture>("MissingAlbedo");
     resource::Texture::MISSING_METALLIC_ROUGHNESS = ResourceLoader::get<resource::Texture>("MissingMetallicRoughness");
     resource::Texture::MISSING_NORMAL_MAP         = ResourceLoader::get<resource::Texture>("MissingNormalMap");
+
+    shaded_shaders_ = {
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR")),
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR#FLAP")),
+        std::weak_ptr(ResourceLoader::get<resource::Shader>("Particle")),
+    };
 
     component::Camera3D::initialize({
         ResourceLoader::get<resource::Shader>("PBR"),
@@ -1764,6 +1771,34 @@ void Application::update(float delta_time)
     {
         Time::setTimeOfDay(0.0f);
         LOG_INFO("time set to sunrise");
+    }
+    if (Input::getState(Input::Action::CycleShadingMode) == Input::State::JustReleased)
+    {
+        switch (shading_mode_)
+        {
+        case ShadingMode::GGXTrowbridgeReitz: {
+            shading_mode_ = ShadingMode::Gouraud; 
+            LOG_INFO("changed shading mode to: 'Gouraud'");
+        }
+        break;
+        case ShadingMode::Gouraud: {
+            shading_mode_ = ShadingMode::Phong; 
+            LOG_INFO("changed shading mode to: 'Phong'");
+        }
+        break;
+        case ShadingMode::Phong: {
+            shading_mode_ = ShadingMode::GGXTrowbridgeReitz; 
+            LOG_INFO("changed shading mode to: 'GGXTrowbridgeReitz'");
+        }
+        break;
+        }
+
+        for (auto weak_shader : shaded_shaders_)
+        {
+            auto shader = weak_shader.lock();
+            shader->bind();
+            shader->setUniform("u_ShadingMode", static_cast<int>(shading_mode_));
+        }
     }
 
     updateActiveView();

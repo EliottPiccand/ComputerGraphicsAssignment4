@@ -28,8 +28,8 @@
     - ~~island firecamp~~
     - ~~cannonballs~~
 - ~~particle shading~~
-- Gouraud shading mode (cycle with 'g')
-- Phong shading mode (cycle with 'g')
+- ~~Gouraud shading mode (cycle with 'g')~~
+- ~~Phong shading mode (cycle with 'g')~~
 - water texture mapping
 - update Report
     - content

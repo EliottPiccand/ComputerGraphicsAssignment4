@@ -396,6 +396,11 @@ Thus, for each model, instead of simply render a plane color, we computed:
 + light information: using the normal map and the metallic/roughness information, we computed an approximation of reflections of lights and the sky (see @fig:pbr);
 + emissive texture (see @fig:emissive).
 
+Three different shading modes are implemented (cyclable by clicking the `G` key):
+- GGX/TrowbridgeReitz-Reitz: default shading, modern PBR implementation implementing material reflections
+- Gouraud: Per vertex shading
+- Phong: Per fragment shading with specular effect
+
 = End-user guide
 The game starts immediately on running the executable.
 The goal is to sunk the enemies' ships (the ones with black sails).
