@@ -27,7 +27,7 @@
 - ~~light points:~~
     - ~~island firecamp~~
     - ~~cannonballs~~
-- particle lighting
+- ~~particle shading~~
 - Gouraud shading mode (cycle with 'g')
 - Phong shading mode (cycle with 'g')
 - water texture mapping

@@ -105,7 +105,6 @@ void ParticleSystem::render()
 
     auto shader = weak_shader.lock();
     shader->bind();
-    shader->setUniform("u_Model", glm::mat4(1.0f));
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo_input_);
 

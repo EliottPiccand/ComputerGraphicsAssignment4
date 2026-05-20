@@ -53,7 +53,7 @@
 #include "Utils/Time.h"
 #include "glm/gtc/constants.hpp"
 
-constexpr const bool DEBUG_SCENE = false;
+constexpr const bool DEBUG_SCENE = true;
 
 #pragma region model_settings
 
@@ -337,26 +337,30 @@ Application::Application()
         "Lights.frag",
     };
 
-    ResourceLoader::load<resource::Shader>("Sky",          "SkyBox.vert",       "SkyBox.frag",          resource::Shader::Defines{
-        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))},
+#define DEF_MAX_POINT_LIGHTS {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))}
+
+    ResourceLoader::load<resource::Shader>("Sky",          "SkyBox.vert",       "SkyBox.frag",       resource::Shader::Defines{
+        DEF_MAX_POINT_LIGHTS,
     }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("PBR",          "PBR.vert",          "PBR.frag",          resource::Shader::Defines{
-        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))},
+        DEF_MAX_POINT_LIGHTS,
     }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("PBR#FLAP",     "PBR.vert",          "PBR.frag",          resource::Shader::Defines{
-        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))},
+        DEF_MAX_POINT_LIGHTS,
         {std::string_view("FLAP"), std::nullopt},
     }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("WorldColor",   "WorldColor.vert",   "WorldColor.frag"  );
     ResourceLoader::load<resource::Shader>("WorldTexture", "WorldTexture.vert", "WorldTexture.frag");
     ResourceLoader::load<resource::Shader>("Water",        "Water.vert",        "Water.frag", resource::Shader::Defines{
-        {std::string_view("MAX_POINT_LIGHTS"), std::optional(std::to_string(component::PointLight::MAX_POINT_LIGHTS))}
+        DEF_MAX_POINT_LIGHTS,
         },
         shared_shader_code,
         std::optional(std::filesystem::path("WaterTCS.glsl")),
         std::optional(std::filesystem::path("WaterTES.glsl"))
     );
-    ResourceLoader::load<resource::Shader>("Particle",     "Particle.vert",     "Particle.frag"    );
+    ResourceLoader::load<resource::Shader>("Particle",     "Particle.vert",     "Particle.frag",     resource::Shader::Defines{
+        DEF_MAX_POINT_LIGHTS,
+    }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("UI",           "UI.vert",           "UI.frag"          );
     
     ResourceLoader::load<resource::ComputeShader>("Particle", "Particle.comp");
@@ -494,11 +498,14 @@ Application::Application()
     component::DirectionalLight::initialize({
         ResourceLoader::get<resource::Shader>("PBR"),
         ResourceLoader::get<resource::Shader>("PBR#FLAP"),
+        ResourceLoader::get<resource::Shader>("Particle"),
         ResourceLoader::get<resource::Shader>("Water"),
     });
     component::PointLight::initialize({
         ResourceLoader::get<resource::Shader>("PBR"),
         ResourceLoader::get<resource::Shader>("PBR#FLAP"),
+        ResourceLoader::get<resource::Shader>("Particle"),
+        ResourceLoader::get<resource::Shader>("Water"),
     });
     ParticleSystem::initialize();
 
@@ -533,6 +540,7 @@ Application::Application()
             std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR")),
             std::weak_ptr(ResourceLoader::get<resource::Shader>("PBR#FLAP")),
             std::weak_ptr(ResourceLoader::get<resource::Shader>("Water")),
+            std::weak_ptr(ResourceLoader::get<resource::Shader>("Particle")),
         });
         std::weak_ptr sun_weak = scene_root_->addComponent<component::DirectionalLight>(
             glm::normalize(2.0f * DOWN + WEST + SOUTH),
@@ -1313,7 +1321,7 @@ Application::Application()
             });
 
         cannon_ball->addComponent<component::Animation>(CANNON_BALL_SPARK_ANIMATION_FACTORY());
-        
+
         auto cannon_ball_back = cannon_ball->addChild();
         cannon_ball_back->addComponent<component::Transform>(MODEL_BACKWARD * 0.5f);
         cannon_ball_back->addComponent<component::PointLight>(glm::mix(FIRE_CAMP_PARTICLE_COLOR_1, FIRE_CAMP_PARTICLE_COLOR_2, Random::random(0.0f, 1.0f)), 5.0f);
@@ -1430,6 +1438,7 @@ Application::Application()
                 particle.color    = glm::mix(EXPLOSION_PARTICLE_INNER_COLOR, EXPLOSION_PARTICLE_OUTTER_COLOR, t);
                 particle.scale    = {0.5f, 0.5f}; 
                 particle.is_subject_to_gravity = false;
+                particle.is_emissive = true;
             }
         }
         break;
@@ -1445,6 +1454,7 @@ Application::Application()
                 particle.life     = Random::random(SMOKE_PARTICLE_MIN_LIFETIME.toSeconds(), SMOKE_PARTICLE_MAX_LIFETIME.toSeconds());
                 particle.scale    = {0.1f, 0.1f};
                 particle.is_subject_to_gravity = false;
+                particle.is_emissive = false;
             }
         }
         break;
@@ -1460,6 +1470,7 @@ Application::Application()
                 particle.life     = Random::random(0.05f, 0.5f);
                 particle.scale    = {0.3f, 0.3f};
                 particle.is_subject_to_gravity = true;
+                particle.is_emissive = false;
             }
         }
         break;
@@ -1487,6 +1498,7 @@ Application::Application()
                                           std::sqrt(radius / PLOOF_PARTICLE_SPAWN_RADIUS));
                 particle.scale    = {1.0f, 1.0f};
                 particle.is_subject_to_gravity = true;
+                particle.is_emissive = false;
             }
         }
         break;
@@ -1507,6 +1519,7 @@ Application::Application()
                 particle.life     = CANNON_BALL_SPARK_PARTICLE_MAX_LIFETIME.toSeconds();
                 particle.scale    = {0.1f, 0.1f};
                 particle.is_subject_to_gravity = true;
+                particle.is_emissive = true;
             }
         }
         break;
@@ -1525,6 +1538,7 @@ Application::Application()
                 particle.life     = FIRE_CAMP_PARTICLE_MAX_LIFETIME.toSeconds() * (1.0f - position_spread) * (1.0f - position_spread);
                 particle.scale    = {0.2f, 0.2f};
                 particle.is_subject_to_gravity = false;
+                particle.is_emissive = true;
             }
         }
         break;

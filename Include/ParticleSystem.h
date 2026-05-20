@@ -16,6 +16,7 @@ struct alignas(16) Particle
     int32_t is_subject_to_gravity;
     alignas(16) Color color;
     alignas(16) glm::vec2 scale;
+    int32_t is_emissive;
 };
 
 class ParticleSystem
