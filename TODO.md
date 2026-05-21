@@ -30,7 +30,7 @@
 - ~~particle shading~~
 - ~~Gouraud shading mode (cycle with 'g')~~
 - ~~Phong shading mode (cycle with 'g')~~
-- water texture mapping
+- ~~water texture mapping~~
 - update Report
     - content
     - screenshots

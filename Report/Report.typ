@@ -387,7 +387,7 @@ Finally, this offscreen fragment buffer is blitted onto the screen.
 
 Using a combination of vertex, tesselation control, tesselation evaluation and fragment shader, we achieve to render in real time high quality water (see @fig:water).
 The water is still rendered as a quad plane, but the tesselation control shader divide each quad into a bunch of small triangles (tessels), and then the tesselation evaluation shader displace each tessels following a combination of several sinusoidal waves.
-Finally, the fragment shader uses different normal maps, noise maps and the previous framebuffer to compute the water color, including sky and scene mirroring effects (see @fig:water-mirror), specular effects and light reflection.
+Finally, the fragment shader uses different normal maps, noise maps#footnote[Althrough the assignment required diffuse texture mapping for the water, we thought that replacing it with noise textures that are used to compute the final color of each fragment is harder and give better visual results.] and the previous framebuffer to compute the water color, including sky and scene mirroring effects (see @fig:water-mirror), specular effects and light reflection.
 
 === Physics Based Rendering (PBR)
 Most of our models#footnote[All of them except the radar] contains PBR data.
