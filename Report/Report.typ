@@ -605,7 +605,8 @@ During the development, we didn't encountered much issues. We just spent a lot o
 Every part of the code is original, but we use several tutorials or references during the development :
 - the camera shaking part mechanic is greatly inspired by #link("https://gamedev.stackexchange.com/a/47565")[\miklatov answer on this Stack Exchange discussion]\;
 - the component system was inspired by #link("https://docs.vulkan.org/tutorial/latest/Building_a_Simple_Engine/Engine_Architecture/03_component_systems.html")[this Vulkan tutorial];
-- the high quality water is a based upon #link("https://alextardif.com/Water.html")[this Direct X tutorial by Alex Tardif].
+- the high quality water is a based upon #link("https://alextardif.com/Water.html")[this Direct X tutorial by Alex Tardif];
+- shadows implementation was done following #link("https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping")[this tutorial on Learn OpenGL].
 
 = AI-assisted coding references
 During the development, we used generative AI when some part require learning a lot of non-graphical related topic to implement. So we always designed everything without AI, but sometime use AI to implement some designs such as :
