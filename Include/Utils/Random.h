@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <random>
 #include <vector>
 
@@ -14,6 +15,7 @@ class Random
     static void initialize();
     [[nodiscard]] static float random(float min, float max);
     [[nodiscard]] static int randint(int min, int max);
+    [[nodiscard]] static uint64_t randU64(uint64_t min, uint64_t max);
     [[nodiscard]] static float radians();
     /// along must be normalized, spread is in radians
     [[nodiscard]] static glm::vec3 direction(const glm::vec3 &along, float spread);

@@ -123,7 +123,8 @@ Our program contains several features, including:
 - smoke at the tip of the cannon barrel after firing;
 - sky;
 - realistic water;
-- physics based rendering.
+- physics based rendering;
+- fireworks on win;
 
 and some features not visible by the players, but useful for development:
 - hierarchical system;
@@ -409,6 +410,11 @@ Three different shading modes are implemented (cyclable by clicking the `G` key)
 - Gouraud: Per vertex shading
 - Phong: Per fragment shading with specular effect
 
+=== Fireworks on Win
+When the player wins, firework are launched until the game restart or is closed (see @fig:fireworks).
+Those fireworks are created with the particle system, and random colors.
+In order to avoid grayish fireworks, the color is picked as a random hue, with near saturated saturation and value, and then converted back from HSV to RGB format. 
+
 = End-user guide
 The game starts immediately on running the executable.
 The goal is to sunk the enemies' ships (the ones with black sails).
@@ -441,7 +447,8 @@ To help with debugging, a few debug options are available :
 - the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East;
 - clicking `T` toggle on/off the rendering of Albedo textures;
 - clicking `N` toggle on/off the use of normal maps#footnote[Water normal maps are always active otherwise the result would be completly weird.];
-- clicking `L` restart the day from the sunrise.
+- clicking `L` restart the day from the sunrise;
+- clicking `K` kill a random enemy.
 
 == Game Screenshots
 
@@ -628,6 +635,11 @@ Many screenshots below comes from previous versions of the game because the main
   image("Images/Shadows.png", width: imageWidth),
   caption: [Shadows visible on the sand (from the palm tree) and on the rocks (from the rocks themselves)],
 ) <fig:shadows>
+
+#figure(
+  image("Images/Fireworks.png", width: imageWidth),
+  caption: [Fireworks fired when the player wins],
+) <fig:fireworks>
 
 = Discussions/Conclusions
 During the development, we didn't encountered much issues. We just spent a lot of time finding good assets for the game and solving orientation issues with those models.

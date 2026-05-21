@@ -26,7 +26,8 @@ To help with debugging, a few debug options are available :
 - releasing `T` toggle on/off the rendering of Albedo textures;
 - releasing `N` toggle on/off the use of normal maps;
 - releasing `L` restart the day from the sunrise;
-- releasing `G` cycles through the different shading modes: GGX/TrowbridgeReitz-Reitz, Gouraud and Phong.
+- releasing `G` cycles through the different shading modes: GGX/TrowbridgeReitz-Reitz, Gouraud and Phong;
+- releasing `K` kill a random enemy.
 
 ## Building the game
 This project use CMake for compiling, and Python for moving assets.

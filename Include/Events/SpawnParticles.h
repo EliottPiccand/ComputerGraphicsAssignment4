@@ -21,6 +21,7 @@ struct SpawnParticles : public Event
         WaterSplash,
         CannonBallSpark,
         FireCamp,
+        Firework,
     };
 
     const Type type;

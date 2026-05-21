@@ -17,6 +17,12 @@ int Random::randint(int min, int max)
     return distribution(generator_);
 }
 
+uint64_t Random::randU64(uint64_t min, uint64_t max)
+{
+    std::uniform_int_distribution<uint64_t> distribution(min, max);
+    return distribution(generator_);
+}
+
 float Random::radians()
 {
     return Random::random(0.0f, glm::radians(359.9f));

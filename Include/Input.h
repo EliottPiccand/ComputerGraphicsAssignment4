@@ -42,6 +42,7 @@ class Input
         ToggleNormalMaps,
         SetSunRise,
         CycleShadingMode,
+        KillRandomEnemy,
       };
 
     enum class State

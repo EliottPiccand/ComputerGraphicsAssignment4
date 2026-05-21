@@ -5,7 +5,7 @@
 
 using namespace component;
 
-Attack::Attack(float min_damages, float max_damages, Duration min_hit_delay)
+Attack::Attack(uint64_t min_damages, uint64_t max_damages, Duration min_hit_delay)
     : min_damages_(min_damages), max_damages_(max_damages), min_hit_delay_(min_hit_delay)
 {
 }
@@ -29,6 +29,6 @@ void Attack::dealDamages(std::shared_ptr<Health> to)
 
     last_hits_[game_object_id] = Time::now();
 
-    const float damages = Random::random(min_damages_, max_damages_);
+    const auto damages = Random::randU64(min_damages_, max_damages_);
     to->damage(damages);
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 
@@ -14,19 +15,20 @@ class Health : public Component
   public:
     using OnDeathCallback = std::function<void(std::shared_ptr<GameObject> game_object)>;
 
-    Health(float max_hit_points, OnDeathCallback on_death_callback);
+    Health(uint64_t max_hit_points, OnDeathCallback on_death_callback);
 
     void initialize() override;
 
-    void damage(float hit_points);
-    void heal(float hit_points);
+    void damage(uint64_t hit_points);
+    void heal(uint64_t hit_points);
     void heal();
 
     float getRemainingHealthRatio() const;
+    bool isAlive() const;
 
   private:
-    const float max_hit_points_;
-    float hit_points_;
+    const uint64_t max_hit_points_;
+    uint64_t hit_points_;
 
     OnDeathCallback on_death_callback_;
 };

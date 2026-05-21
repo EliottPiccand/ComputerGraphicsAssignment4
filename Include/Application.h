@@ -8,7 +8,7 @@
 #include "Components/Camera3D.h"
 #include "Components/FreeViewControls.h"
 #include "GameObject.h"
-#include "Utils/RenderPass.h"
+#include "Utils/GameState.h"
 #include "Utils/ShadingModes.h"
 #include "Utils/View.h"
 #include "Window.h"
@@ -22,6 +22,9 @@ class Application
   private:
     Clock clock_;
     bool should_close_;
+
+    GameState game_state_;
+    Instant next_firework_;
 
     std::unique_ptr<Window> window_;
 

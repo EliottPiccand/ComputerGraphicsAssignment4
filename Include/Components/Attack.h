@@ -14,14 +14,14 @@ namespace component
 class Attack : public Component
 {
   public:
-    Attack(float min_damages, float max_damages, Duration min_hit_delay);
+    Attack(uint64_t min_damages, uint64_t max_damages, Duration min_hit_delay);
 
     void update() override;
     void dealDamages(std::shared_ptr<Health> to);
 
   private:
-    const float min_damages_;
-    const float max_damages_;
+    const uint64_t min_damages_;
+    const uint64_t max_damages_;
     const Duration min_hit_delay_;
 
     std::unordered_map<GameObjectId, Instant> last_hits_;

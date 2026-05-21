@@ -12,12 +12,12 @@
 
 using namespace component;
 
-Health::Health(float max_hit_points, OnDeathCallback on_death_callback)
+Health::Health(uint64_t max_hit_points, OnDeathCallback on_death_callback)
     : max_hit_points_(max_hit_points), hit_points_(max_hit_points), on_death_callback_(on_death_callback)
 {
 }
 
-void Health::heal(float hit_points)
+void Health::heal(uint64_t hit_points)
 {
     hit_points_ += hit_points;
     hit_points_ = std::min(hit_points_, max_hit_points_);
@@ -54,20 +54,25 @@ void Health::initialize()
     });
 }
 
-void Health::damage(float hit_points)
+void Health::damage(uint64_t hit_points)
 {
-    LOG_DEBUG("taken {:.2f} damages", hit_points);
+    LOG_DEBUG("taken {} damages", hit_points);
+ 
+    hit_points = std::min(hit_points, hit_points_);
     hit_points_ -= hit_points;
 
-    if (hit_points_ <= 0.0f)
+    if (hit_points_ == 0)
         on_death_callback_(owner_.lock());
-
-    hit_points_ = std::max(0.0f, hit_points_);
 
     EventQueue::post<event::DamageTaken>(getOwner()->getId());
 }
 
 float Health::getRemainingHealthRatio() const
 {
-    return hit_points_ / max_hit_points_;
+    return static_cast<float>(hit_points_) / static_cast<float>(max_hit_points_);
+}
+
+bool Health::isAlive() const
+{
+    return hit_points_ > 0;
 }

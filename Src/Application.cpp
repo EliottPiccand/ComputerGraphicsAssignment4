@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include <array>
+#include <limits>
 #include <numbers>
 #include <string_view>
 #include <tuple>
@@ -15,6 +16,7 @@
 #include "Components/Collider.h"
 #include "Components/DirectionalLight.h"
 #include "Components/Flag.h"
+#include "Components/Health.h"
 #include "Components/HealthBar.h"
 #include "Components/ModelInstance.h"
 #include "Components/PointLight.h"
@@ -33,6 +35,7 @@
 #include "Events/ShipSunk.h"
 #include "Events/SpawnParticles.h"
 #include "Events/WindowResized.h"
+#include "GLFW/glfw3.h"
 #include "Input.h"
 #include "Mesh/Mesh.h"
 #include "Mesh/Vertex/VertexParticle.h"
@@ -216,9 +219,9 @@ constexpr const std::array SPAWN_LOCATIONS = {
 
 constexpr const size_t ENEMY_COUNT = 2;
 
-constexpr const float SHIP_MAX_HIT_POINTS = 24'000.0f;
-constexpr const float CANNON_BALL_MIN_DAMAGE = 3'000.0f;
-constexpr const float CANNON_BALL_MAX_DAMAGE = 15'000.0f;
+constexpr const uint64_t SHIP_MAX_HIT_POINTS = 24'000;
+constexpr const uint64_t CANNON_BALL_MIN_DAMAGE = 3'000;
+constexpr const uint64_t CANNON_BALL_MAX_DAMAGE = 15'000;
 
 constexpr const float MAX_EXPLOSION_RAIDUS = 5.0f;            // m
 constexpr const float EXPLOSION_RADIUS_EXPANTION_RATE = 8.0f; // m/s
@@ -280,6 +283,8 @@ constexpr const Duration FIRE_CAMP_PARTICLE_SPAWN_INTERVAL = Duration::milliseco
 constexpr const Color FIRE_CAMP_PARTICLE_COLOR_1 = rgba(252, 233, 62, 1);
 constexpr const Color FIRE_CAMP_PARTICLE_COLOR_2 = rgba(255, 29, 29, 1);
 
+constexpr const size_t FIREWORK_PARTICLE_COUNT = 1000;
+
 #pragma endregion particles_settings
 
 Application::Application()
@@ -324,6 +329,7 @@ Application::Application()
     Input::bindKey(Input::Action::ToggleNormalMaps,     GLFW_KEY_N         );
     Input::bindKey(Input::Action::SetSunRise,           GLFW_KEY_L         );
     Input::bindKey(Input::Action::CycleShadingMode,     GLFW_KEY_G         );
+    Input::bindKey(Input::Action::KillRandomEnemy,      GLFW_KEY_K         );
 
     /******************************************************************************/
     /*                                   Shaders                                  */
@@ -909,6 +915,26 @@ Application::Application()
                     glm::vec3(transform->resolve()[3]),
                     particle_count);
             });
+
+            // Firework
+            auto firework = scene_root_->addChild();
+            firework->addComponent<component::Transform>(EAST * 10.0f + NORTH * 30.0f + UP * 10.0f);
+            constexpr const auto FIREWORK_INTERVAL = Duration::milliseconds(1000.0f);
+            firework->addComponent<component::Animation>([FIREWORK_INTERVAL, last_spawn = Time::now() - FIREWORK_INTERVAL](
+                std::shared_ptr<component::Transform> transform,
+                std::shared_ptr<GameObject> game_object
+            ) mutable {
+                (void)game_object;
+            
+                if (Time::now() < last_spawn + FIREWORK_INTERVAL)
+                    return;
+                last_spawn = Time::now();
+
+                EventQueue::post<event::SpawnParticles>(
+                    event::SpawnParticles::Type::Firework,
+                    glm::vec3(transform->resolve()[3]),
+                    FIREWORK_PARTICLE_COUNT);
+            });
         }
         else
         {
@@ -1231,6 +1257,7 @@ Application::Application()
     else
     {
         Singleton::view = main_view_;
+        next_firework_ = Time::now();
     }
 
     scene_root_->initialize();
@@ -1413,11 +1440,13 @@ Application::Application()
         {
             LOG_DEBUG("victory");
             victory_message_.lock()->visible = true;
+            game_state_ = GameState::Victory;
         }
         else
         {
             LOG_DEBUG("defeat");
             defeat_message_.lock()->visible = true;
+            game_state_ = GameState::Defeat;
         }
 
         main_view_ = View::Top;
@@ -1556,6 +1585,29 @@ Application::Application()
             }
         }
         break;
+        case event::SpawnParticles::Type::Firework: {
+            constexpr const float FIREWORK_PARTICLE_MAX_VELOCITY = 10.0f; // m/s
+            const float lifetime = Duration::milliseconds(Random::random(800.0f, 2400.0f)).toSeconds();
+            const float base_hue = glm::degrees(Random::radians());
+
+            for (auto &particle : particles)
+            {
+                const float t = std::sqrt(Random::random(0.0f, 1.0f));
+                float hue = base_hue + Random::random(-1.0f, 1.0f) * 15.0f;
+                while (hue > 360.0f)
+                    hue -= 360.0f;
+                while (hue < 0.0f)
+                    hue += 360.0f;
+
+                particle.position = event.position;
+                particle.velocity = t * FIREWORK_PARTICLE_MAX_VELOCITY * Random::direction();
+                particle.life     = lifetime;
+                particle.color    = color::hsv(hue, Random::random(0.8f, 1.0f), Random::random(0.8f, 1.0f));
+                particle.scale    = Random::random(0.5f, 2.0f) * glm::vec2{1.0f, 1.0f}; 
+                particle.is_subject_to_gravity = false;
+                particle.is_emissive = true;
+            }
+        }
         }
 
         ParticleSystem::addParticles(particles);
@@ -1807,6 +1859,36 @@ void Application::update(float delta_time)
             shader->setUniform("u_ShadingMode", static_cast<int>(shading_mode_));
         }
     }
+    if (Input::getState(Input::Action::KillRandomEnemy) == Input::State::JustReleased)
+    {
+        for (auto [weak_ship, _] : ships_and_health_bars_)
+        {
+            auto ship = weak_ship.lock();
+            if (ship->getId() == player_id_)
+                continue;
+
+            auto health = ship->getComponent<component::Health>().value();
+            if (!health->isAlive())
+                continue;
+
+            health->damage(std::numeric_limits<uint64_t>::max());
+            break;
+        }
+    }
+
+    if (game_state_ == GameState::Victory)
+    {
+        const auto now = Time::now();
+
+        if (now > next_firework_)
+        {
+            next_firework_ = now + Duration::milliseconds(Random::random(200.0f, 800.0f));
+
+            const auto position = (NORTH * Random::random(-0.5f, 0.5f) + EAST * Random::random(-0.5f, 0.5f)) * WORLD_WIDTH + UP * Random::random(15.0f, 25.0f);
+
+            EventQueue::post<event::SpawnParticles>(event::SpawnParticles::Type::Firework, position, FIREWORK_PARTICLE_COUNT);
+        }
+    }
 
     updateActiveView();
 
@@ -1881,6 +1963,8 @@ void Application::restart()
 
     if constexpr (!DEBUG_SCENE)
     {
+        game_state_ = GameState::Main;
+
         // hide messages
         victory_message_.lock()->visible = false;
         defeat_message_.lock()->visible = false;
