@@ -89,9 +89,9 @@ To develop our program, we used VSCodium (with the clangd extension) for code ed
 Out game extensively use modern OpenGL features such as Tesselation shaders, Compute shaders and SSBOs.
 Thus it is required to have an OpenGL 4.6 compatible computer to run the game.
 Moreover, heavy features are used (PBR and water rendering, particle system, ...).
-During the development, our computer have a Nvidia RTX 4070.
+The computer used during the development have a Nvidia RTX 4070.
 Thus, it is possible that less performant hardware might reduce the frame rate of the game and the gameplay experience.
-Additionally, the game might take a few seconds to load, because of models and textures loading, and shader compiling.
+Additionally, the game might take a few seconds (we measured around 7s) to load, because of models and textures loading, and shader compiling.
 It is normal to see a blank window for a few seconds. 
 
 In addition, we used the #link("https://github.com/wolfpld/tracy")[Tracy] library to profile our game when we faced performances issues. This library was only used during the development and is not needed when compiling the game in Debug or Release mode.
@@ -107,7 +107,7 @@ Our program contains several features, including:
 - damage system;
 - victory / defeat display;
 - multiple views;
-- lighing;
+- lighting;
 // additional goals
 - explosion effects;
 - camera shaking;
@@ -215,7 +215,7 @@ Each rigid body is then moved and rotated accordingly to Newton's laws.
 In addition, this part also handle collision detection for triggers, and collision solving when needed.
 
 === Particle System
-This system is used extensively in the game to render huge amount of colored points.
+This system is used extensively#footnote[Currently, 2 000 000 particles can be displayed simultaneously.] in the game to render huge amount of colored points.
 It handle the display part but also the motion of each particle.
 To be able to render a huge amount of particles, we used a combination of 2 methods.
 
@@ -395,7 +395,7 @@ Finally, this offscreen fragment buffer is blitted onto the screen.
 
 Using a combination of vertex, tesselation control, tesselation evaluation and fragment shader, we achieve to render in real time high quality water (see @fig:water).
 The water is still rendered as a quad plane, but the tesselation control shader divide each quad into a bunch of small triangles (tessels), and then the tesselation evaluation shader displace each tessels following a combination of several sinusoidal waves.
-Finally, the fragment shader uses different normal maps, noise maps#footnote[Althrough the assignment required diffuse texture mapping for the water, we thought that replacing it with noise textures that are used to compute the final color of each fragment is harder and give better visual results.] and the previous framebuffer to compute the water color, including sky and scene mirroring effects (see @fig:water-mirror), specular effects and light reflection.
+Finally, the fragment shader uses different normal maps, noise maps#footnote[Although the assignment required diffuse texture mapping for the water, we thought that replacing it with noise textures that are used to compute the final color of each fragment is harder and give better visual results.] and the previous framebuffer to compute the water color, including sky and scene mirroring effects (see @fig:water-mirror), specular effects and light reflection.
 
 === Physics Based Rendering (PBR)
 Most of our models#footnote[All of them except the radar] contains PBR data.
@@ -447,6 +447,8 @@ To help with debugging, a few debug options are available :
 
 #let imageWidth = 96%;
 
+Many screenshots below comes from previous versions of the game because the main point they are showing has not been changed.
+
 #figure(
   image("Images/PlayerShip.png", width: imageWidth),
   caption: [Player Ship],
@@ -469,22 +471,22 @@ To help with debugging, a few debug options are available :
 
 #figure(
   image("Images/CannonBallTrajectory.png", width: imageWidth),
-  caption: [Cannon ball trajectory preview (blue line)#footnote[This is a screenshot from the previous version of the game. In the new version, the debug view has been removed because it was no longer necessary (no changes to the game logic were made) and would have required a lot of time to reimplement.] <ft:debug>],
+  caption: [Cannon ball trajectory preview (blue line)],
 ) <fig:cannon-ball-trajectory>
 
 #figure(
   image("Images/ColliderAABB.png", width: imageWidth),
-  caption: [AABB collider (in red) around a cannon ball@ft:debug],
+  caption: [AABB collider (in red) around a cannon ball],
 ) <fig:collider-aabb>
 
 #figure(
   image("Images/ColliderConvexPolyhedron.png", width: imageWidth),
-  caption: [Convex polyhedron collider (in green) and its AABB (in red) around a ship@ft:debug],
+  caption: [Convex polyhedron collider (in green) and its AABB (in red) around a ship],
 ) <fig:collider-convex-polyhedron>
 
 #figure(
   image("Images/ColliderSphere.png", width: imageWidth),
-  caption: [Sphere collider (in cyan) and its AABB (in red) inside an explosion@ft:debug],
+  caption: [Sphere collider (in cyan) and its AABB (in red) inside an explosion],
 ) <fig:collider-sphere>
 
 #figure(
@@ -494,7 +496,7 @@ To help with debugging, a few debug options are available :
 
 #figure(
   image("Images/RocksCollider.png", width: imageWidth),
-  caption: [Rocks at the edge of the map and the map edge collider@ft:debug],
+  caption: [Rocks at the edge of the map and the map edge collider],
 ) <fig:rocks-collider>
 
 #figure(
@@ -504,7 +506,7 @@ To help with debugging, a few debug options are available :
 
 #figure(
   image("Images/TopViewDebug.png", width: imageWidth),
-  caption: [Top view at the start of the game with debug mode enabled@ft:debug],
+  caption: [Top view at the start of the game with debug mode enabled],
 ) <fig:top-view-debug>
 
 #figure(
@@ -569,12 +571,12 @@ To help with debugging, a few debug options are available :
 
 #figure(
   image("Images/Axis.png", width: imageWidth),
-  caption: [Debug view of a cannon ball with on the middle of the screen, the game's axis and on the cannon ball, its model axis (red = X, green = Y and blue = Z)@ft:debug],
+  caption: [Debug view of a cannon ball with on the middle of the screen, the game's axis and on the cannon ball, its model axis (red = X, green = Y and blue = Z)],
 ) <fig:axis>
 
 #figure(
   image("Images/Camera.png", width: imageWidth),
-  caption: [Debug view of the camera following the cannon ball@ft:debug],
+  caption: [Debug view of the camera following the cannon ball],
 ) <fig:camera>
 
 #figure(
@@ -599,8 +601,33 @@ To help with debugging, a few debug options are available :
 
 #figure(
   image("Images/Sky.png", width: imageWidth),
-  caption: [Sky box],
+  caption: [Sky box around noon],
 ) <fig:sky>
+
+#figure(
+  image("Images/Dusk.png", width: imageWidth),
+  caption: [Sky box around dusk],
+) <fig:sky.dusk>
+
+#figure(
+  image("Images/Night.png", width: imageWidth),
+  caption: [Sky box during night],
+) <fig:sky.night>
+
+#figure(
+  image("Images/Island.png", width: imageWidth),
+  caption: [Eastern Island],
+) <fig:island>
+
+#figure(
+  image("Images/FirePlace.png", width: imageWidth),
+  caption: [Eastern Island lighted by the fire camp light during the night. _(the fire particle are emissive but does not lit the scene. This is done by a point light placed inside the fire.)_],
+) <fig:firecamp>
+
+#figure(
+  image("Images/Shadows.png", width: imageWidth),
+  caption: [Shadows visible on the sand (from the palm tree) and on the rocks (from the rocks themselves)],
+) <fig:shadows>
 
 = Discussions/Conclusions
 During the development, we didn't encountered much issues. We just spent a lot of time finding good assets for the game and solving orientation issues with those models.
@@ -611,7 +638,7 @@ Every part of the code is original, but we use several tutorials or references d
 - the component system was inspired by #link("https://docs.vulkan.org/tutorial/latest/Building_a_Simple_Engine/Engine_Architecture/03_component_systems.html")[this Vulkan tutorial];
 - the high quality water is a based upon #link("https://alextardif.com/Water.html")[this Direct X tutorial by Alex Tardif];
 - shadows implementation was done following #link("https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping")[this tutorial on Learn OpenGL];
-- motion blur wase inspired by #link("https://gamedev.stackexchange.com/questions/8770/glsl-shader-effects-how-to-do-motion-blur")[r2d2rigo comment on this StackExchange conversation].
+- motion blur was inspired by #link("https://gamedev.stackexchange.com/questions/8770/glsl-shader-effects-how-to-do-motion-blur")[r2d2rigo comment on this StackExchange conversation].
 
 = AI-assisted coding references
 During the development, we used generative AI when some part require learning a lot of non-graphical related topic to implement. So we always designed everything without AI, but sometime use AI to implement some designs such as :

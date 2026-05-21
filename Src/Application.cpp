@@ -585,7 +585,7 @@ Application::Application()
             const float azimuth = glm::mix(-glm::half_pi<float>(), glm::half_pi<float>(), day_progress);
             const float elevation = sun_curve * MAX_ELEVATION;
 
-            const glm::vec3 horizontal = std::cos(azimuth) * EAST + std::sin(azimuth) * NORTH;
+            const glm::vec3 horizontal = std::cos(azimuth) * SOUTH + std::sin(azimuth) * WEST;
             sun->direction = -(std::cos(elevation) * horizontal + std::sin(elevation) * UP);
             const float day_intensity = glm::mix(MIN_DAY_INTENSITY_FACTOR, 1.0f, sun_curve * sun_curve);
             sun->intensity = day_intensity * SUN_INTENSITY;
@@ -1614,8 +1614,6 @@ void Application::updateShaderSettings()
 
 void Application::run()
 {
-    LOG_INFO("ready!");
-
     while (!(window_->shouldClose() || should_close_))
     {
         const float delta_time = clock_.tick().toSeconds();

@@ -12,7 +12,7 @@
 #include "Utils/Profiling.h"
 #include "Utils/Time.h"
 
-constexpr const uint32_t MAX_PARTICLES = 100'000;
+constexpr const uint32_t MAX_PARTICLES = 200'000;
 
 void ParticleSystem::addParticles(std::span<const Particle> particles)
 {
