@@ -26,7 +26,7 @@ To help with debugging, a few debug options are available :
 - releasing `T` toggle on/off the rendering of Albedo textures;
 - releasing `N` toggle on/off the use of normal maps;
 - releasing `L` restart the day from the sunrise;
-- releasing `G` cycles through the different shading modes: GGX/TrowbridgeReitz-Reitz, Gouraud and Phong;
+- releasing `M` cycles through the different shading modes: GGX/TrowbridgeReitz-Reitz, Gouraud and Phong;
 - releasing `K` kill a random enemy.
 
 ## Building the game
@@ -65,6 +65,7 @@ If you don't have Python installed, you can remove everything inside `CMakeLists
         - `path/to/repo/Include`;
         - `path/to/repo/Lib`;
     + Add to `Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions` : `OE_RELEASE`
+    + Change `Configuration Properties > C/C++ > Code Generation > Basic Runtime Checks` to `Default`;
     + Change `Configuration Properties > C/C++ > Output Files > Object File Names` to `$(IntDir)%(RelativeDir)%(Filename).obj`;
     + Add to `Configuration Properties > C/C++ > Command Line > Additional Options` : `-Xclang -std=c++23 -O3`;
     + Add to `Configuration Properties > Linker > General > Additional Library Directories` : `path/to/repo/Lib`;

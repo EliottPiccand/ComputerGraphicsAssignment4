@@ -405,7 +405,7 @@ Thus, for each model, instead of simply render a plane color, we computed:
 + light information: using the normal map and the metallic/roughness information, we computed an approximation of reflections of lights and the sky (see @fig:pbr);
 + emissive texture (see @fig:emissive).
 
-Three different shading modes are implemented (cyclable by clicking the `G` key):
+Three different shading modes are implemented (cyclable by clicking the `M` key):
 - GGX/TrowbridgeReitz-Reitz: default shading, modern PBR implementation implementing material reflections
 - Gouraud: Per vertex shading
 - Phong: Per fragment shading with specular effect

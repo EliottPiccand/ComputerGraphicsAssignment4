@@ -332,7 +332,7 @@ Application::Application()
     Input::bindKey(Input::Action::ToggleAlbedoTextures, GLFW_KEY_T         );
     Input::bindKey(Input::Action::ToggleNormalMaps,     GLFW_KEY_N         );
     Input::bindKey(Input::Action::SetSunRise,           GLFW_KEY_L         );
-    Input::bindKey(Input::Action::CycleShadingMode,     GLFW_KEY_G         );
+    Input::bindKey(Input::Action::CycleShadingMode,     GLFW_KEY_M         );
     Input::bindKey(Input::Action::KillRandomEnemy,      GLFW_KEY_K         );
 
     /******************************************************************************/
