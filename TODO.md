@@ -57,11 +57,11 @@
 - ~~pbr~~
 - ~~waves (https://alextardif.com/Water.html)~~
 - ~~night skybox blending~~
+- ~~fireworks on win~~
 - moonlight
 - moon
 - sun
 - smoke above firecamp
-- fireworks on win
 - sink animation
 - rotating ship wheel
 - moving rudder
