@@ -5,7 +5,7 @@
 #let title = [
   Computer Graphics (CSED451-01)
   #linebreak()
-  Assignment 3.2: 3D Drawing with OpenGL Shaders
+  Assignment 4: 3D Shading
 ]
 
 #set math.equation(numbering: "(1)")
@@ -62,7 +62,7 @@
   ])
 
   #align(center, text(14pt)[
-    Team Baguette - _#link("https://github.com/EliottPiccand/ComputerGraphicsAssignment3_2")[Github Repository]_
+    Team Baguette - _#link("https://github.com/EliottPiccand/ComputerGraphicsAssignment4")[Github Repository]_
   ])
 
   #grid(
