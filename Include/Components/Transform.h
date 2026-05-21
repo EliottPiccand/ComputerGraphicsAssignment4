@@ -32,9 +32,9 @@ class Transform : public Component
     /// axis should be normalized
     void pointToward(const glm::vec3 &direction);
 
-    void preRender(glm::mat4 &transform) const override;
-    void render(glm::mat4 &transform) const override;
-    void renderDefered(glm::mat4 &transform) const override;
+    void preRender(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
+    void render(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
+    void renderDefered(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
   private:
     glm::vec3 position_;

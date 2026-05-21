@@ -16,7 +16,7 @@ class HealthBar : public Component
 
     void initialize() override;
     void update() override;
-    void renderDefered(glm::mat4 &transform) const override;
+    void renderDefered(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
   private:
     std::weak_ptr<Health> health_;

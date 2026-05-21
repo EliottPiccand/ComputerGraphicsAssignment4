@@ -20,7 +20,7 @@ class Flag : public Component
     Flag(std::weak_ptr<resource::Texture> texture, std::optional<std::weak_ptr<resource::Texture>> emissive_texture);
 
     void update() override;
-    void render(glm::mat4 &transform) const override;
+    void render(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
   private:
     float animation_time_;

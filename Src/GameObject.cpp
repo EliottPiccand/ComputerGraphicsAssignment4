@@ -105,7 +105,7 @@ void GameObject::update()
     }
 }
 
-void GameObject::preRender(const glm::mat4 &parent_transform) const
+void GameObject::preRender(const glm::mat4 &parent_transform, RenderPass pass) const
 {
     if (!visible)
     {
@@ -118,16 +118,16 @@ void GameObject::preRender(const glm::mat4 &parent_transform) const
 
     for (const auto &component : components_)
     {
-        component->preRender(transform);
+        component->preRender(transform, pass);
     }
 
     for (const auto &child : children_)
     {
-        child->preRender(transform);
+        child->preRender(transform, pass);
     }
 }
 
-void GameObject::render(const glm::mat4 &parent_transform) const
+void GameObject::render(const glm::mat4 &parent_transform, RenderPass pass) const
 {
     if (!visible)
     {
@@ -140,16 +140,16 @@ void GameObject::render(const glm::mat4 &parent_transform) const
 
     for (const auto &component : components_)
     {
-        component->render(transform);
+        component->render(transform, pass);
     }
 
     for (const auto &child : children_)
     {
-        child->render(transform);
+        child->render(transform, pass);
     }
 }
 
-void GameObject::renderDefered(const glm::mat4 &parent_transform) const
+void GameObject::renderDefered(const glm::mat4 &parent_transform, RenderPass pass) const
 {
     if (!visible)
     {
@@ -162,11 +162,11 @@ void GameObject::renderDefered(const glm::mat4 &parent_transform) const
 
     for (const auto &component : components_)
     {
-        component->renderDefered(transform);
+        component->renderDefered(transform, pass);
     }
 
     for (const auto &child : children_)
     {
-        child->renderDefered(transform);
+        child->renderDefered(transform, pass);
     }
 }

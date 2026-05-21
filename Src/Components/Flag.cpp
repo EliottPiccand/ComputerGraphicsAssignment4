@@ -30,10 +30,25 @@ void Flag::update()
     animation_time_ += Time::getDeltaTime();
 }
 
-void Flag::render(glm::mat4 &transform) const
+void Flag::render(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("Flag::render");
+
+    if (pass == RenderPass::Shadow)
+    {
+        static std::weak_ptr weak_shader = ResourceLoader::get<resource::Shader>("Shadow#FLAP");
+        static std::weak_ptr model = ResourceLoader::get<resource::Model>("Flag");
+
+        auto shader = weak_shader.lock();
+        shader->bind();
+        shader->setUniform("u_Model", transform);
+        shader->setUniform("u_Time", animation_time_);
+        shader->setUniform("u_Width", WIDTH);
+
+        model.lock()->draw(shader, materials_override_);
+        return;
+    }
 
     static std::weak_ptr weak_shader = ResourceLoader::get<resource::Shader>("PBR#FLAP");
     static std::weak_ptr model = ResourceLoader::get<resource::Model>("Flag");

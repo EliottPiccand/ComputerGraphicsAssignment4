@@ -35,10 +35,17 @@ void component::PointLight::endPreRender()
     }
 }
 
-void component::PointLight::preRender(glm::mat4 &transform) const
+void component::PointLight::preRender(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("PointLight::preRender");
+
+    if (pass == RenderPass::Shadow)
+    {
+        return;
+    }
+
+    (void)pass;
 
     if (lights_drawn_on_this_frame_ >= MAX_POINT_LIGHTS)
     {

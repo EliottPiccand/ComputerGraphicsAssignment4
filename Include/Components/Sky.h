@@ -27,7 +27,7 @@ class Sky : public Component
 
     Sky(std::vector<SkyboxEntry> textures, std::vector<std::weak_ptr<resource::Shader>> shaders);
 
-    void render(glm::mat4 &transform) const override;
+    void render(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
   private:
     std::vector<SkyboxEntry> textures_;

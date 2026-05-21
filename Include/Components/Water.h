@@ -13,7 +13,7 @@ class Water : public Component
   public:
     Water();
 
-    void renderDefered(glm::mat4 &transform) const override;
+    void renderDefered(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
   private:
     GLuint vertex_array_;

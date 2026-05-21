@@ -2,6 +2,8 @@ uniform vec3 u_AmbientLight;
 
 uniform vec3 u_DirectionalLightDirection;
 uniform vec3 u_DirectionalLightColor;
+uniform mat4 u_LightSpaceMatrix;
+uniform sampler2D u_ShadowMap;
 
 struct PointLight
 {
@@ -62,6 +64,36 @@ vec3 pointLight(PointLight light, vec3 fragmentPosition, vec3 V, vec3 N, vec3 al
     float attenuation = light.intensity / (4.0 * PI * distanceToLight * distanceToLight) * 100.0;
     vec3 radiance = light.color * attenuation;
     return (diffuse + specular) * radiance * NdotL;
+}
+
+float directionalShadowFactor(vec3 fragmentPosition, vec3 normal, vec3 lightDirection)
+{
+    vec4 shadowSpacePosition = u_LightSpaceMatrix * vec4(fragmentPosition, 1.0);
+    vec3 projected = shadowSpacePosition.xyz / shadowSpacePosition.w;
+    projected = projected * 0.5 + 0.5;
+
+    if (projected.z > 1.0)
+    {
+        return 0.0;
+    }
+
+    vec3 N = normalize(normal);
+    vec3 L = normalize(-lightDirection);
+    float bias = max(0.0025 * (1.0 - dot(N, L)), 0.0005);
+
+    vec2 texel_size = 1.0 / vec2(textureSize(u_ShadowMap, 0));
+    float shadow = 0.0;
+
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
+        {
+            float closestDepth = texture(u_ShadowMap, projected.xy + vec2(x, y) * texel_size).r;
+            shadow += projected.z - bias > closestDepth ? 1.0 : 0.0;
+        }
+    }
+
+    return shadow / 9.0;
 }
 
 vec3 directionaLightPhong(vec3 direction, vec3 color, vec3 V, vec3 N, vec3 albedo, float roughness, float metallic)
@@ -127,7 +159,8 @@ vec3 computeDirectLighting(vec3 fragmentPosition, vec3 V, vec3 N, vec3 albedo, f
 
     vec3 Lo = vec3(0.0);
     // Directional
-    Lo += directionaLight(u_DirectionalLightDirection, u_DirectionalLightColor, V, N, albedo, roughness, metallic, F0);
+        Lo += (1.0 - directionalShadowFactor(fragmentPosition, N, u_DirectionalLightDirection)) *
+            directionaLight(u_DirectionalLightDirection, u_DirectionalLightColor, V, N, albedo, roughness, metallic, F0);
 
     // Points
     for (int i = 0; i < u_PointLightCount; i++)

@@ -10,19 +10,22 @@ void Component::update()
 {
 }
 
-void Component::preRender(glm::mat4 &transform) const
+void Component::preRender(glm::mat4 &transform, RenderPass pass) const
 {
     (void)transform;
+    (void)pass;
 }
 
-void Component::render(glm::mat4 &transform) const
+void Component::render(glm::mat4 &transform, RenderPass pass) const
 {
     (void)transform;
+    (void)pass;
 }
 
-void Component::renderDefered(glm::mat4 &transform) const
+void Component::renderDefered(glm::mat4 &transform, RenderPass pass) const
 {
     (void)transform;
+    (void)pass;
 }
 
 void Component::setOwner(std::shared_ptr<GameObject> game_object)

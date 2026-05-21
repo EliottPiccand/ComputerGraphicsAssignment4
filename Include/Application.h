@@ -8,6 +8,7 @@
 #include "Components/Camera3D.h"
 #include "Components/FreeViewControls.h"
 #include "GameObject.h"
+#include "Utils/RenderPass.h"
 #include "Utils/ShadingModes.h"
 #include "Utils/View.h"
 #include "Window.h"

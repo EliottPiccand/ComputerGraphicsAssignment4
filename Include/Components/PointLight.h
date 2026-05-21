@@ -28,7 +28,7 @@ class PointLight : public Component
 
     static void beginPreRender();
     static void endPreRender();
-    void preRender(glm::mat4 &transform) const override;
+    void preRender(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
     Color color;
     float intensity;

@@ -117,21 +117,23 @@ void Transform::pointToward(const glm::vec3 &direction)
     rotation_ = glm::normalize(glm::angleAxis(rotation_angle, rotation_axis / axis_length) * rotation_);
 }
 
-void Transform::preRender(glm::mat4 &transform) const
+void Transform::preRender(glm::mat4 &transform, RenderPass pass) const
 {
-    render(transform);
+    (void)pass;
+    render(transform, pass);
 }
 
-void Transform::render(glm::mat4 &transform) const
+void Transform::render(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("Transform::render");
 
+    (void)pass;
     const glm::mat4 local = glm::translate(position_) * glm::mat4_cast(rotation_) * glm::scale(scale_);
     transform = transform * local;
 }
 
-void Transform::renderDefered(glm::mat4 &transform) const
+void Transform::renderDefered(glm::mat4 &transform, RenderPass pass) const
 {
-    render(transform);
+    render(transform, pass);
 }

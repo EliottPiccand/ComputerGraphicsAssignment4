@@ -29,6 +29,8 @@ uniform sampler2D u_EmissiveTexture;
 uniform vec3 u_AmbientLight;
 uniform vec3 u_DirectionalLightDirection;
 uniform vec3 u_DirectionalLightColor;
+uniform mat4 u_LightSpaceMatrix;
+uniform sampler2D u_ShadowMap;
 
 #ifdef FLAP
 
@@ -116,7 +118,30 @@ void main()
         float spec = pow(max(dot(N, H), 0.0), shininess);
         vec3 diff = albedo * NdotL;
         vec3 specCol = mix(vec3(0.04), albedo, metallic) * spec;
-        Lo += (diff + specCol) * u_DirectionalLightColor;
+
+        vec4 shadowSpacePosition = u_LightSpaceMatrix * vec4(out_Pos, 1.0);
+        vec3 projected = shadowSpacePosition.xyz / shadowSpacePosition.w;
+        projected = projected * 0.5 + 0.5;
+
+        float shadow = 0.0;
+        if (projected.z <= 1.0)
+        {
+            float bias = max(0.0025 * (1.0 - dot(N, L)), 0.0005);
+            vec2 texelSize = 1.0 / vec2(textureSize(u_ShadowMap, 0));
+
+            for (int x = -1; x <= 1; ++x)
+            {
+                for (int y = -1; y <= 1; ++y)
+                {
+                    float closestDepth = texture(u_ShadowMap, projected.xy + vec2(x, y) * texelSize).r;
+                    shadow += projected.z - bias > closestDepth ? 1.0 : 0.0;
+                }
+            }
+
+            shadow /= 9.0;
+        }
+
+        Lo += (1.0 - shadow) * (diff + specCol) * u_DirectionalLightColor;
     }
 
     out_GouraudDirect = Lo;

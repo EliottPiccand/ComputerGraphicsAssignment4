@@ -10,6 +10,7 @@
 #include <Lib/glm.h>
 
 #include "Components/Component.h"
+#include "Utils/RenderPass.h"
 
 using GameObjectId = size_t;
 
@@ -23,9 +24,10 @@ class GameObject : public std::enable_shared_from_this<GameObject>
 
     void initialize();
     void update();
-    void preRender(const glm::mat4 &transform = glm::mat4(1.0f)) const;
-    void render(const glm::mat4 &transform = glm::mat4(1.0f)) const;
-    void renderDefered(const glm::mat4 &transform = glm::mat4(1.0f)) const;
+    void preRender(const glm::mat4 &transform = glm::mat4(1.0f), RenderPass pass = RenderPass::Main) const;
+    void render(const glm::mat4 &transform = glm::mat4(1.0f), RenderPass pass = RenderPass::Main) const;
+    void renderDefered(const glm::mat4 &transform = glm::mat4(1.0f),
+                       RenderPass pass = RenderPass::Main) const;
 
     GameObjectId getId() const;
 

@@ -14,10 +14,21 @@ ModelInstance::ModelInstance(std::shared_ptr<resource::Model> model,
 {
 }
 
-void ModelInstance::render(glm::mat4 &transform) const
+void ModelInstance::render(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("ModelInstance::render");
+
+    if (pass == RenderPass::Shadow)
+    {
+        static std::weak_ptr weak_shader = ResourceLoader::get<resource::Shader>("Shadow");
+
+        auto shader = weak_shader.lock();
+        shader->bind();
+        shader->setUniform("u_Model", transform);
+        model_->draw(shader, materials_override_);
+        return;
+    }
 
     static std::weak_ptr weak_shader = ResourceLoader::get<resource::Shader>("PBR");
 

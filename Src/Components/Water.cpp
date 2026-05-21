@@ -37,10 +37,17 @@ Water::Water()
     index_count_ = static_cast<GLsizei>(indices.size());
 }
 
-void Water::renderDefered(glm::mat4 &transform) const
+void Water::renderDefered(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("Water::renderDefered");
+
+    if (pass == RenderPass::Shadow)
+    {
+        return;
+    }
+
+    (void)pass;
 
     static std::weak_ptr weak_shader = ResourceLoader::get<resource::Shader>("Water");
 

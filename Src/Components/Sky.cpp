@@ -120,12 +120,19 @@ Sky::Sky(std::vector<SkyboxEntry> textures, std::vector<std::weak_ptr<resource::
 {
 }
 
-void Sky::render(glm::mat4 &transform) const
+void Sky::render(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("Sky::render");
 
     (void)transform;
+
+    if (pass == RenderPass::Shadow)
+    {
+        return;
+    }
+
+    (void)pass;
 
     static std::weak_ptr weak_sky_shader = ResourceLoader::get<resource::Shader>("Sky");
     static std::shared_ptr<resource::Model> cube_model = ResourceLoader::get<resource::Model>("SkyCube");

@@ -350,6 +350,10 @@ Application::Application()
         DEF_MAX_POINT_LIGHTS,
         {std::string_view("FLAP"), std::nullopt},
     }, shared_shader_code);
+    ResourceLoader::load<resource::Shader>("Shadow",       "Shadow.vert",       "Shadow.frag");
+    ResourceLoader::load<resource::Shader>("Shadow#FLAP",   "Shadow.vert",       "Shadow.frag",       resource::Shader::Defines{
+        {std::string_view("FLAP"), std::nullopt},
+    });
     ResourceLoader::load<resource::Shader>("WorldColor",   "WorldColor.vert",   "WorldColor.frag"  );
     ResourceLoader::load<resource::Shader>("WorldTexture", "WorldTexture.vert", "WorldTexture.frag");
     ResourceLoader::load<resource::Shader>("Water",        "Water.vert",        "Water.frag", resource::Shader::Defines{
@@ -508,6 +512,7 @@ Application::Application()
         ResourceLoader::get<resource::Shader>("Particle"),
         ResourceLoader::get<resource::Shader>("Water"),
     });
+    component::DirectionalLight::initializeShadow();
     component::PointLight::initialize({
         ResourceLoader::get<resource::Shader>("PBR"),
         ResourceLoader::get<resource::Shader>("PBR#FLAP"),
@@ -1607,6 +1612,8 @@ void Application::updateShaderSettings()
 
 void Application::run()
 {
+    LOG_INFO("ready!");
+
     while (!(window_->shouldClose() || should_close_))
     {
         const float delta_time = clock_.tick().toSeconds();
@@ -1848,15 +1855,21 @@ void Application::renderPass(std::shared_ptr<component::Camera3D> camera) const
 
     window_->bindFrameBuffer();
 
+    scene_root_->preRender(glm::mat4(1.0f), RenderPass::Shadow);
+    component::DirectionalLight::beginShadowRender();
+    scene_root_->render(glm::mat4(1.0f), RenderPass::Shadow);
+    component::DirectionalLight::endShadowRender();
+    window_->bindFrameBuffer();
+
     component::DirectionalLight::beginPreRender();
     component::PointLight::beginPreRender();
-    scene_root_->preRender();
+    scene_root_->preRender(glm::mat4(1.0f), RenderPass::Main);
     component::PointLight::endPreRender();
 
-    scene_root_->render();
+    scene_root_->render(glm::mat4(1.0f), RenderPass::Main);
 
     window_->mapFrameBuffer(shaders_for_frame_buffer_mapping);
-    scene_root_->renderDefered();
+    scene_root_->renderDefered(glm::mat4(1.0f), RenderPass::Main);
 
     ParticleSystem::render();
     camera->renderEffect();

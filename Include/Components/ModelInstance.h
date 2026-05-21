@@ -15,7 +15,7 @@ class ModelInstance : public Component
   public:
     ModelInstance(std::shared_ptr<resource::Model> model, resource::Model::MaterialsOverride materials_override = {});
 
-    void render(glm::mat4 &transform) const override;
+    void render(glm::mat4 &transform, RenderPass pass = RenderPass::Main) const override;
 
   private:
     std::shared_ptr<resource::Model> model_;

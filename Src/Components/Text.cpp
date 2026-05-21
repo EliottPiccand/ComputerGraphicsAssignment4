@@ -13,10 +13,17 @@ Text::Text(float width, float height, std::weak_ptr<resource::Texture> texture)
 {
 }
 
-void Text::renderDefered(glm::mat4 &transform) const
+void Text::renderDefered(glm::mat4 &transform, RenderPass pass) const
 {
     ProfileScope;
     ProfileScopeGPU("Text::renderDefered");
+
+    if (pass == RenderPass::Shadow)
+    {
+        return;
+    }
+
+    (void)pass;
 
     static std::weak_ptr weak_shader = ResourceLoader::get<resource::Shader>("WorldTexture");
     static std::weak_ptr model = ResourceLoader::get<resource::Model>("Text");
