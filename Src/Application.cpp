@@ -56,6 +56,8 @@
 #include "Utils/Time.h"
 
 constexpr const bool DEBUG_SCENE = false;
+constexpr const float DEFAULT_MOTION_BLUR_FACTOR = 0.8f;
+constexpr const float DISABLED_MOTION_BLUR_FACTOR = 1.0f;
 
 #pragma region model_settings
 
@@ -301,7 +303,9 @@ Application::Application()
     /******************************************************************************/
 
     window_ = std::make_unique<Window>();
-    window_->setMotionBlurFactor(0.8f);
+    window_->setMotionBlurFactor(Singleton::rendering_style == RenderingStyle::OpaquePolygon
+                                     ? DEFAULT_MOTION_BLUR_FACTOR
+                                     : DISABLED_MOTION_BLUR_FACTOR);
     initializeOpenGL();
 
     /******************************************************************************/
@@ -1747,6 +1751,7 @@ void Application::update(float delta_time)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDisable(GL_POLYGON_OFFSET_FILL);
             Singleton::rendering_style = RenderingStyle::Wireframe;
+            window_->setMotionBlurFactor(DISABLED_MOTION_BLUR_FACTOR);
         }
         break;
         case RenderingStyle::Wireframe: {
@@ -1754,6 +1759,7 @@ void Application::update(float delta_time)
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(1.0f, 1.0f);
             Singleton::rendering_style = RenderingStyle::WireframeWithHiddenLinesRemoval;
+            window_->setMotionBlurFactor(DISABLED_MOTION_BLUR_FACTOR);
         }
         break;
         case RenderingStyle::WireframeWithHiddenLinesRemoval: {
@@ -1761,6 +1767,7 @@ void Application::update(float delta_time)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glDisable(GL_POLYGON_OFFSET_FILL);
             Singleton::rendering_style = RenderingStyle::OpaquePolygon;
+            window_->setMotionBlurFactor(DEFAULT_MOTION_BLUR_FACTOR);
         }
         break;
         }

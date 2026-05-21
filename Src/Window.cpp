@@ -208,6 +208,11 @@ void Window::startRendering() const
 void Window::setMotionBlurFactor(float factor)
 {
     motion_blur_factor_ = std::clamp(factor, 0.0f, 1.0f);
+
+    if (motion_blur_factor_ >= 1.0f)
+    {
+        motion_blur_history_initialized_ = false;
+    }
 }
 
 void Window::bindFrameBuffer() const
@@ -251,6 +256,19 @@ void Window::mapFrameBuffer(const std::vector<std::weak_ptr<resource::Shader>> &
 void Window::endFrame()
 {
     ProfileScope;
+
+    if (motion_blur_factor_ >= 1.0f)
+    {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer_);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, static_cast<GLint>(width_), static_cast<GLint>(height_), 0, 0,
+                          static_cast<GLint>(width_), static_cast<GLint>(height_), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glfwSwapBuffers(handle_);
+
+        CollectGpuProfilingEvents;
+        glfwPollEvents();
+        return;
+    }
 
     static std::weak_ptr<resource::Model> quad_model = ResourceLoader::get<resource::Model>("Effect");
     static std::weak_ptr<resource::Shader> motion_blur_shader = ResourceLoader::get<resource::Shader>("MotionBlur");
