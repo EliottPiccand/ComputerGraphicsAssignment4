@@ -1,5 +1,6 @@
 #include "Window.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <format>
@@ -8,8 +9,11 @@
 
 #include <Lib/OpenGL.h>
 
+#include "Mesh/Mesh.h"
 #include "Events/EventQueue.h"
 #include "Events/WindowResized.h"
+#include "Resources/Model.h"
+#include "Resources/ResourceLoader.h"
 #include "Resources/Texture.h"
 #include "Utils/Color.h"
 #include "Utils/Log.h"
@@ -89,7 +93,9 @@ const char *glDebugSeverityName(GLenum severity)
     throw std::runtime_error(message);
 }
 
-Window::Window() : is_full_screen_(false), width_(DEFAULT_WIDTH), height_(DEFAULT_HEIGHT)
+Window::Window()
+        : is_full_screen_(false), width_(DEFAULT_WIDTH), height_(DEFAULT_HEIGHT), motion_blur_factor_(0.9f),
+            motion_blur_history_initialized_(false)
 {
     glfwSetErrorCallback(glfwErrorCallback);
     glfwInit();
@@ -168,7 +174,9 @@ Window::Window() : is_full_screen_(false), width_(DEFAULT_WIDTH), height_(DEFAUL
 
     EventQueue::registerCallback<event::WindowResized>([&](const event::WindowResized &event) {
         deleteColorDepthNormalsTextures();
+        deleteMotionBlurTextures();
         createColorDepthNormalsTextures(event.width, event.height);
+        createMotionBlurTextures(event.width, event.height);
 
         width_ = event.width;
         height_ = event.height;
@@ -195,6 +203,11 @@ void Window::startRendering() const
 
     glClearColor(color::SKY.r, color::SKY.g, color::SKY.b, color::SKY.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Window::setMotionBlurFactor(float factor)
+{
+    motion_blur_factor_ = std::clamp(factor, 0.0f, 1.0f);
 }
 
 void Window::bindFrameBuffer() const
@@ -235,11 +248,45 @@ void Window::mapFrameBuffer(const std::vector<std::weak_ptr<resource::Shader>> &
     }
 }
 
-void Window::endFrame() const
+void Window::endFrame()
 {
     ProfileScope;
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer_);
+    static std::weak_ptr<resource::Model> quad_model = ResourceLoader::get<resource::Model>("Effect");
+    static std::weak_ptr<resource::Shader> motion_blur_shader = ResourceLoader::get<resource::Shader>("MotionBlur");
+
+    auto model = quad_model.lock();
+    auto shader = motion_blur_shader.lock();
+
+    if (!motion_blur_history_initialized_)
+    {
+        glCopyImageSubData(color_texture_, GL_TEXTURE_2D, 0, 0, 0, 0, motion_blur_history_texture_, GL_TEXTURE_2D, 0,
+                           0, 0, 0, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_), 1);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, motion_blur_frame_buffer_);
+    glViewport(0, 0, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_));
+    SCOPE_DISABLE(GL_DEPTH_TEST);
+    SCOPE_DISABLE(GL_CULL_FACE);
+
+    shader->bind();
+    shader->setUniform("u_Model", glm::mat3(glm::scale(glm::mat4(1.0f), {2.0f, 2.0f, 1.0f})));
+    shader->setUniform("u_MotionBlurFactor", motion_blur_factor_);
+    glBindTextureUnit(resource::Texture::MOTION_BLUR_CURRENT_SLOT, color_texture_);
+    glUniform1i(shader->getUniformLocation("u_CurrentColorMap"),
+                static_cast<GLint>(resource::Texture::MOTION_BLUR_CURRENT_SLOT));
+    glBindTextureUnit(resource::Texture::MOTION_BLUR_HISTORY_SLOT, motion_blur_history_texture_);
+    glUniform1i(shader->getUniformLocation("u_PreviousColorMap"),
+                static_cast<GLint>(resource::Texture::MOTION_BLUR_HISTORY_SLOT));
+
+    model->bind();
+    glDrawElements(GL_TRIANGLES, model->getIndexCount(), GL_INDEX_TYPE, nullptr);
+
+    glCopyImageSubData(motion_blur_color_texture_, GL_TEXTURE_2D, 0, 0, 0, 0, motion_blur_history_texture_,
+                       GL_TEXTURE_2D, 0, 0, 0, 0, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_), 1);
+    motion_blur_history_initialized_ = true;
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, motion_blur_frame_buffer_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
     glBlitFramebuffer(
@@ -402,6 +449,37 @@ void Window::createColorDepthNormalsTextures(uint32_t width, uint32_t height)
     }
 }
 
+void Window::createMotionBlurTextures(uint32_t width, uint32_t height)
+{
+    glCreateFramebuffers(1, &motion_blur_frame_buffer_);
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &motion_blur_color_texture_);
+    glTextureStorage2D(motion_blur_color_texture_, 1, GL_RGBA16F, static_cast<int>(width), static_cast<int>(height));
+    glTextureParameteri(motion_blur_color_texture_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(motion_blur_color_texture_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(motion_blur_color_texture_, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(motion_blur_color_texture_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glNamedFramebufferTexture(motion_blur_frame_buffer_, GL_COLOR_ATTACHMENT0, motion_blur_color_texture_, 0);
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &motion_blur_history_texture_);
+    glTextureStorage2D(motion_blur_history_texture_, 1, GL_RGBA16F, static_cast<int>(width), static_cast<int>(height));
+    glTextureParameteri(motion_blur_history_texture_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(motion_blur_history_texture_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(motion_blur_history_texture_, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(motion_blur_history_texture_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    constexpr const GLenum color_attachment = GL_COLOR_ATTACHMENT0;
+    glNamedFramebufferDrawBuffers(motion_blur_frame_buffer_, 1, &color_attachment);
+
+    if (glCheckNamedFramebufferStatus(motion_blur_frame_buffer_, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        LOG_ERROR("failed to update the motion blur frame buffer");
+        throw std::runtime_error("failed to update the motion blur frame buffer");
+    }
+
+    motion_blur_history_initialized_ = false;
+}
+
 void Window::deleteColorDepthNormalsTextures()
 {
     glDeleteTextures(1, &color_texture_);
@@ -412,15 +490,24 @@ void Window::deleteColorDepthNormalsTextures()
     glDeleteTextures(1, &normals_texture_snapshot_);
 }
 
+void Window::deleteMotionBlurTextures()
+{
+    glDeleteTextures(1, &motion_blur_color_texture_);
+    glDeleteTextures(1, &motion_blur_history_texture_);
+    glDeleteFramebuffers(1, &motion_blur_frame_buffer_);
+}
+
 void Window::createFrameBuffer(uint32_t width, uint32_t height)
 {
     glCreateFramebuffers(1, &frame_buffer_);
 
     createColorDepthNormalsTextures(width, height);
+    createMotionBlurTextures(width, height);
 }
 
 void Window::deleteFrameBuffer()
 {
+    deleteMotionBlurTextures();
     deleteColorDepthNormalsTextures();
     glDeleteFramebuffers(1, &frame_buffer_);
 }

@@ -25,11 +25,13 @@ class Window
     [[nodiscard]] bool shouldClose() const;
     void startRendering() const;
 
+    void setMotionBlurFactor(float factor);
+
     void bindFrameBuffer() const;
     void unbindFrameBuffer() const;
     void mapFrameBuffer(const std::vector<std::weak_ptr<resource::Shader>> &shaders) const;
 
-    void endFrame() const;
+    void endFrame();
 
     void setTitle(std::string title) const;
     void toggleFullScreen();
@@ -54,6 +56,9 @@ class Window
     uint32_t width_;
     uint32_t height_;
 
+    float motion_blur_factor_;
+    bool motion_blur_history_initialized_;
+
     GLuint frame_buffer_;
     GLuint color_texture_;
     GLuint depth_texture_;
@@ -62,8 +67,14 @@ class Window
     GLuint depth_texture_snapshot_;
     GLuint normals_texture_snapshot_;
 
+    GLuint motion_blur_frame_buffer_;
+    GLuint motion_blur_color_texture_;
+    GLuint motion_blur_history_texture_;
+
     void createColorDepthNormalsTextures(uint32_t width, uint32_t height);
     void deleteColorDepthNormalsTextures();
+    void createMotionBlurTextures(uint32_t width, uint32_t height);
+    void deleteMotionBlurTextures();
     void createFrameBuffer(uint32_t width, uint32_t height);
     void deleteFrameBuffer();
 };

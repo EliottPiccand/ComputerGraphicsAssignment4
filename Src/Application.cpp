@@ -52,7 +52,7 @@
 #include "Utils/Random.h"
 #include "Utils/Time.h"
 
-constexpr const bool DEBUG_SCENE = true;
+constexpr const bool DEBUG_SCENE = false;
 
 #pragma region model_settings
 
@@ -296,6 +296,7 @@ Application::Application()
     /******************************************************************************/
 
     window_ = std::make_unique<Window>();
+    window_->setMotionBlurFactor(0.8f);
     initializeOpenGL();
 
     /******************************************************************************/
@@ -367,6 +368,7 @@ Application::Application()
         DEF_MAX_POINT_LIGHTS,
     }, shared_shader_code);
     ResourceLoader::load<resource::Shader>("UI",           "UI.vert",           "UI.frag"          );
+    ResourceLoader::load<resource::Shader>("MotionBlur",   "MotionBlur.vert",   "MotionBlur.frag"  );
     
     ResourceLoader::load<resource::ComputeShader>("Particle", "Particle.comp");
 

@@ -115,6 +115,7 @@ Our program contains several features, including:
 - cannon recoil;
 - flapping flag;
 - shadows;
+- motion blur;
 // custom additional goals
 - water splash;
 - sparks on cannon balls;
@@ -361,6 +362,9 @@ The model actually remains always flat on the memory, the flapping part is handl
 === Shadows
 The sun light (directional light) produce shadows on every models (see @fig:shadows).
 
+=== Motion Blur
+By blending the previous frame's color buffer with the current one, we achieve a lightweight motion blur whose intensity can be customized.
+
 === Water Splash
 When a cannon ball hit the water plane, it spawn an water splash (see @fig:water-splash).
 To render it, we used 500 particles with different colors, position, velocity and lifetime, subject to gravity.
@@ -436,7 +440,7 @@ To help with debugging, a few debug options are available :
 - clicking `F` when in another view than Top View fire a cannon ball from the player ship;
 - the arrow keys `Up` `Left` `Down` `Right` move the player's cannon's target respectively North, West, South and East;
 - clicking `T` toggle on/off the rendering of Albedo textures;
-- clicking `N` toggle on/off the use of normal maps;
+- clicking `N` toggle on/off the use of normal maps#footnote[Water normal maps are always active otherwise the result would be completly weird.];
 - clicking `L` restart the day from the sunrise.
 
 == Game Screenshots
@@ -606,7 +610,8 @@ Every part of the code is original, but we use several tutorials or references d
 - the camera shaking part mechanic is greatly inspired by #link("https://gamedev.stackexchange.com/a/47565")[\miklatov answer on this Stack Exchange discussion]\;
 - the component system was inspired by #link("https://docs.vulkan.org/tutorial/latest/Building_a_Simple_Engine/Engine_Architecture/03_component_systems.html")[this Vulkan tutorial];
 - the high quality water is a based upon #link("https://alextardif.com/Water.html")[this Direct X tutorial by Alex Tardif];
-- shadows implementation was done following #link("https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping")[this tutorial on Learn OpenGL].
+- shadows implementation was done following #link("https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping")[this tutorial on Learn OpenGL];
+- motion blur wase inspired by #link("https://gamedev.stackexchange.com/questions/8770/glsl-shader-effects-how-to-do-motion-blur")[r2d2rigo comment on this StackExchange conversation].
 
 = AI-assisted coding references
 During the development, we used generative AI when some part require learning a lot of non-graphical related topic to implement. So we always designed everything without AI, but sometime use AI to implement some designs such as :
