@@ -44,9 +44,9 @@
 - ~~foam trail~~
 - ~~cannon recoil~~
 - ~~flapping flag~~
+- ~~shadows~~
 - speed dependent propeller
 - motion blur
-- shadows
 
 ## Custom Additional Goals
 - ~~water splash on cannonball hit water~~

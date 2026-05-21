@@ -114,6 +114,7 @@ Our program contains several features, including:
 - foam trails;
 - cannon recoil;
 - flapping flag;
+- shadows;
 // custom additional goals
 - water splash;
 - sparks on cannon balls;
@@ -356,6 +357,9 @@ However, because the views instantly swap to the cannon ball's (because of the a
 Each ship has its topmost flag (see @fig:player-ship-annotated) flapping.
 However, since the health bar is above the ship, this is only visible in cannon/cannon ball view when enemies are close enough, or in free camera view.
 The model actually remains always flat on the memory, the flapping part is handle completely by displacing the vertices inside the vertex shader.
+
+=== Shadows
+The sun light (directional light) produce shadows on every models (see @fig:shadows).
 
 === Water Splash
 When a cannon ball hit the water plane, it spawn an water splash (see @fig:water-splash).

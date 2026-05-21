@@ -1856,7 +1856,7 @@ void Application::renderPass(std::shared_ptr<component::Camera3D> camera) const
     window_->bindFrameBuffer();
 
     scene_root_->preRender(glm::mat4(1.0f), RenderPass::Shadow);
-    component::DirectionalLight::beginShadowRender();
+    component::DirectionalLight::beginShadowRender(camera->getPosition());
     scene_root_->render(glm::mat4(1.0f), RenderPass::Shadow);
     component::DirectionalLight::endShadowRender();
     window_->bindFrameBuffer();

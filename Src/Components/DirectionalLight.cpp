@@ -49,8 +49,8 @@ void component::DirectionalLight::initializeShadow()
     glBindTexture(GL_TEXTURE_2D, shadow_depth_texture_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0, GL_DEPTH_COMPONENT,
                  GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     const GLfloat border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -77,12 +77,13 @@ void component::DirectionalLight::beginPreRender()
     }
 }
 
-void component::DirectionalLight::beginShadowRender()
+void component::DirectionalLight::beginShadowRender(glm::vec3 focus_point)
 {
     ProfileScope;
     ProfileScopeGPU("DirectionalLight::beginShadowRender");
 
-    light_space_matrix_ = calculateLightSpaceMatrix(current_direction_);
+    current_focus_point_ = focus_point;
+    light_space_matrix_ = calculateLightSpaceMatrix(current_direction_, current_focus_point_);
 
     for (auto weak_shader : shadow_shaders_)
     {
@@ -127,12 +128,11 @@ void component::DirectionalLight::preRender(glm::mat4 &transform, RenderPass pas
     }
 }
 
-glm::mat4 component::DirectionalLight::calculateLightSpaceMatrix(glm::vec3 direction)
+glm::mat4 component::DirectionalLight::calculateLightSpaceMatrix(glm::vec3 light_direction, glm::vec3 focus_point)
 {
-    const glm::vec3 center = glm::vec3(WORLD_WIDTH * 0.5f, WORLD_WIDTH * 0.5f, 0.0f);
-    const glm::vec3 light_position = center - glm::normalize(direction) * WORLD_WIDTH;
-    const glm::mat4 view = glm::lookAt(light_position, center, chooseUpVector(direction));
-    const float extent = WORLD_WIDTH;
+    const glm::vec3 light_position = focus_point - glm::normalize(light_direction) * WORLD_WIDTH;
+    const glm::mat4 view = glm::lookAt(light_position, focus_point, chooseUpVector(light_direction));
+    const float extent = WORLD_WIDTH * 0.9f;
     const glm::mat4 projection = glm::ortho(-extent, extent, -extent, extent, -extent, extent * 2.0f);
     return projection * view;
 }
